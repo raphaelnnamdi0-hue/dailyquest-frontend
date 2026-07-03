@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Daily Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:#0C0B09;color:#F0EBE0;font-family:'DM Sans',sans-serif;}
+:root{
+  --bg:#0C0B09;--bg2:#151310;--bg3:#1E1B16;--bg4:#272318;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --gold:#E8B84B;--gold2:#F5D070;--gold-dim:rgba(232,184,75,0.12);
+  --text:#F0EBE0;--text2:#9C9280;--text3:#5C5448;
+  --green:#4CAF7D;--green-bg:rgba(76,175,125,0.12);
+  --blue:#5B9BD5;--blue-bg:rgba(91,155,213,0.12);
+  --purple:#9B72E0;--purple-bg:rgba(155,114,224,0.12);
+  --coral:#E07250;--coral-bg:rgba(224,114,80,0.12);
+  --red:#E05A4A;--red-bg:rgba(224,90,74,0.12);
+  --teal:#2DC4A2;--teal-bg:rgba(45,196,162,0.12);
+  --pink:#E060A0;--pink-bg:rgba(224,96,160,0.12);
+  --ice:#7EC8E3;--ice-bg:rgba(126,200,227,0.12);
+  --r:12px;--r2:16px;--r3:20px;
+}
+#auth-wrap{display:flex;flex-direction:column;min-height:100dvh;align-items:center;justify-content:center;padding:24px 20px;}
+.auth-card{width:100%;max-width:400px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r3);padding:32px 28px;}
+.auth-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;letter-spacing:-.03em;color:var(--text);text-align:center;margin-bottom:4px;}
+.auth-logo span{color:var(--gold);}
+.auth-tagline{font-size:13px;color:var(--text3);text-align:center;margin-bottom:28px;}
+.auth-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--text);text-align:center;margin-bottom:22px;letter-spacing:-.02em;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:7px;}
+.field input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border .15s;}
+.field input:focus{border-color:rgba(232,184,75,.5);}
+.field input::placeholder{color:var(--text3);}
+.auth-btn{width:100%;background:var(--gold);color:#1A1508;border:none;border-radius:var(--r);padding:14px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;letter-spacing:.02em;transition:all .15s;}
+.auth-btn:hover{background:var(--gold2);}
+.auth-btn:disabled{opacity:.5;cursor:default;}
+.auth-switch{text-align:center;margin-top:20px;font-size:13px;color:var(--text3);}
+.auth-switch a{color:var(--gold);cursor:pointer;font-weight:500;}
+.auth-error{color:var(--red);font-size:13px;margin-top:12px;text-align:center;display:none;}
+#app-wrap{display:none;height:100dvh;flex-direction:column;max-width:480px;margin:0 auto;position:relative;}
+#app-wrap.show{display:flex;}
+.screen{flex:1;overflow-y:auto;padding:0 0 84px;display:none;animation:fadeUp .25s ease;}
+.screen.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.screen::-webkit-scrollbar{width:3px;}
+.screen::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 0;}
+.topbar-title{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.02em;}
+.topbar-title span{color:var(--gold);}
+.top-pills{display:flex;align-items:center;gap:6px;}
+.streak-pill{display:flex;align-items:center;gap:5px;background:var(--gold-dim);border:1px solid rgba(232,184,75,.25);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:500;color:var(--gold);}
+.freeze-pill{display:flex;align-items:center;gap:5px;background:var(--ice-bg);border:1px solid rgba(126,200,227,.25);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:500;color:var(--ice);cursor:pointer;}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:flex;background:rgba(12,11,9,.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);padding:8px 0 20px;z-index:100;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 0;opacity:.4;transition:opacity .15s;}
+.nav-item.active{opacity:1;}
+.nav-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;}
+.nav-label{font-size:10px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:#F0EBE0;}
+.nav-item.active .nav-label{color:var(--gold);}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:16px 20px 0;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 10px;text-align:center;}
+.stat-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);letter-spacing:-.03em;}
+.stat-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;font-weight:500;}
+.progress-wrap{padding:16px 20px 0;}
+.progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.progress-title{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:500;}
+.progress-track{height:4px;background:var(--bg4);border-radius:4px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--gold);border-radius:4px;transition:width .6s cubic-bezier(.34,1.56,.64,1);}
+.quest-wrap{padding:16px 20px 0;}
+.date-row{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:12px;font-weight:500;}
+.quest-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r3);}
+.quest-card-inner{padding:20px 18px 18px;}
+.quest-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.cat-badge{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:5px 12px;border-radius:20px;}
+.xp-badge{font-size:12px;font-weight:500;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(232,184,75,.2);border-radius:20px;padding:5px 12px;}
+.diff-badge{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:20px;margin-left:6px;}
+.diff-easy{background:var(--green-bg);color:var(--green);}
+.diff-medium{background:rgba(232,184,75,.12);color:var(--gold);}
+.diff-hard{background:var(--red-bg);color:var(--red);}
+.verify-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 10px;margin-top:10px;}
+.quest-main{font-family:'Syne',sans-serif;font-size:20px;font-weight:600;line-height:1.35;color:var(--text);margin-bottom:10px;letter-spacing:-.02em;}
+.quest-hint{font-size:13px;color:var(--text2);line-height:1.6;padding-left:12px;border-left:2px solid var(--border2);margin-bottom:14px;font-style:italic;}
+.quest-actions{display:flex;gap:10px;margin-top:16px;}
+.btn-gold{flex:1;background:var(--gold);color:#1A1508;border:none;border-radius:var(--r);padding:13px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;}
+.btn-gold:hover{background:var(--gold2);}
+.btn-gold:disabled{opacity:.4;cursor:default;}
+.btn-ghost{background:transparent;border:1px solid var(--border2);border-radius:var(--r);padding:13px 16px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text2);cursor:pointer;transition:all .15s;}
+.btn-ghost:hover{background:var(--bg3);color:var(--text);}
+.btn-ghost:disabled{opacity:.4;cursor:not-allowed;}
+.done-card{background:var(--green-bg);border:1px solid rgba(76,175,125,.2);border-radius:var(--r3);padding:26px 20px;text-align:center;margin-bottom:12px;}
+.done-icon{width:50px;height:50px;background:rgba(76,175,125,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;}
+.done-title{font-family:'Syne',sans-serif;font-size:21px;font-weight:700;color:var(--green);margin-bottom:5px;}
+.done-sub{font-size:13px;color:var(--text2);line-height:1.5;}
+.done-xp{display:inline-block;background:rgba(76,175,125,.15);border:1px solid rgba(76,175,125,.25);color:var(--green);border-radius:20px;padding:5px 14px;font-size:13px;font-weight:600;margin-top:10px;}
+.done-proof{margin-top:10px;font-size:12px;color:var(--text3);font-style:italic;line-height:1.5;}
+.share-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:transparent;border:1px solid rgba(76,175,125,.3);border-radius:var(--r);padding:11px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--green);cursor:pointer;margin-top:12px;}
+.share-btn:hover{background:rgba(76,175,125,.1);}
+.bonus-btn{width:100%;background:transparent;border:1px dashed var(--border2);border-radius:var(--r2);padding:13px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;}
+.bonus-btn:hover{background:var(--bg3);color:var(--text);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:500;display:none;align-items:flex-end;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r3) var(--r3) 0 0;width:100%;max-width:480px;padding:28px 24px 40px;animation:slideUp .3s ease;max-height:90dvh;overflow-y:auto;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;}
+.modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.02em;}
+.modal-close{background:transparent;border:none;color:var(--text3);font-size:22px;cursor:pointer;line-height:1;padding:0 0 0 12px;flex-shrink:0;}
+.modal-sub{font-size:13px;color:var(--text2);margin-bottom:22px;line-height:1.5;}
+.photo-zone{border:2px dashed var(--border2);border-radius:var(--r2);padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;}
+.photo-zone:hover{border-color:var(--gold);background:var(--gold-dim);}
+.photo-zone.has-photo{border-color:var(--green);border-style:solid;background:var(--green-bg);}
+.photo-zone-icon{font-size:30px;margin-bottom:8px;}
+.photo-zone-text{font-size:14px;color:var(--text2);}
+.photo-zone-sub{font-size:12px;color:var(--text3);margin-top:3px;}
+#photo-input{display:none;}
+.photo-preview{width:100%;max-height:180px;object-fit:cover;border-radius:var(--r);margin-top:12px;display:none;}
+.timer-display{font-family:'Syne',sans-serif;font-size:56px;font-weight:800;color:var(--text);text-align:center;letter-spacing:-.04em;margin:16px 0 12px;}
+.timer-track{height:6px;background:var(--bg4);border-radius:6px;overflow:hidden;margin-bottom:20px;}
+.timer-fill{height:100%;background:var(--gold);border-radius:6px;transition:width 1s linear;}
+.timer-btn{width:100%;background:var(--gold);color:#1A1508;border:none;border-radius:var(--r);padding:14px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;}
+.timer-btn:hover{background:var(--gold2);}
+.timer-btn.paused{background:var(--bg3);color:var(--text2);border:1px solid var(--border2);}
+.timer-status{text-align:center;font-size:13px;color:var(--text3);margin-top:12px;}
+.mood-row{display:flex;gap:8px;margin-bottom:18px;}
+.mood-btn{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:12px 6px;font-size:22px;cursor:pointer;text-align:center;transition:all .15s;}
+.mood-btn.on{border-color:var(--gold);background:var(--gold-dim);}
+.mood-lbl{font-size:10px;color:var(--text3);display:block;margin-top:4px;text-transform:uppercase;letter-spacing:.04em;}
+.refl-label{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:7px;margin-top:14px;}
+.refl-inp{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;resize:none;line-height:1.6;}
+.refl-inp:focus{border-color:rgba(232,184,75,.4);}
+.refl-inp::placeholder{color:var(--text3);}
+.section{padding:16px 20px 0;}
+.section-title{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);font-weight:600;margin-bottom:12px;}
+.hist-item{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--border);}
+.hist-item:last-child{border-bottom:none;}
+.hist-dot{width:9px;height:9px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.hist-text{font-size:14px;color:var(--text);line-height:1.4;margin-bottom:4px;}
+.hist-meta{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.hist-xp{color:var(--gold);font-weight:500;}
+.hist-proof{font-size:12px;color:var(--text3);font-style:italic;margin-top:4px;line-height:1.5;}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3);font-size:14px;line-height:1.7;}
+.profile-header{padding:28px 20px 20px;text-align:center;}
+.avatar{width:70px;height:70px;background:var(--gold-dim);border:2px solid rgba(232,184,75,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--gold);}
+.profile-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.02em;}
+.profile-level{font-size:13px;color:var(--text2);margin-top:4px;}
+.xp-bar-wrap{padding:4px 20px 0;}
+.xp-bar-track{height:5px;background:var(--bg4);border-radius:5px;overflow:hidden;margin-top:8px;}
+.xp-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:5px;transition:width .8s cubic-bezier(.34,1.56,.64,1);}
+.xp-row{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:5px;}
+.ach-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.ach-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 8px;text-align:center;}
+.ach-item.locked{opacity:.3;}
+.ach-icon{font-size:20px;margin-bottom:5px;display:block;}
+.ach-name{font-size:10px;color:var(--text2);font-weight:500;line-height:1.3;}
+.settings-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:12px;}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);}
+.settings-row:last-child{border-bottom:none;}
+.settings-row.col{flex-direction:column;align-items:flex-start;gap:10px;}
+.settings-label{font-size:14px;color:var(--text);}
+.settings-sub{font-size:12px;color:var(--text3);margin-top:2px;}
+.text-inp{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:11px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;}
+.text-inp:focus{border-color:rgba(232,184,75,.4);}
+.text-inp::placeholder{color:var(--text3);}
+.save-btn{background:var(--gold);color:#1A1508;border:none;border-radius:var(--r);padding:11px 22px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.save-btn:hover{background:var(--gold2);}
+.cat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:100%;}
+.cat-chip{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:var(--r);padding:10px 12px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;display:flex;align-items:center;gap:8px;}
+.cat-chip.on{background:var(--gold-dim);border-color:rgba(232,184,75,.35);color:var(--gold);}
+.cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.diff-row{display:flex;gap:8px;width:100%;}
+.diff-btn{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:12px 8px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;text-align:center;transition:all .15s;color:var(--text2);}
+.diff-btn.on-easy{background:var(--green-bg);border-color:rgba(76,175,125,.35);color:var(--green);font-weight:600;}
+.diff-btn.on-medium{background:var(--gold-dim);border-color:rgba(232,184,75,.35);color:var(--gold);font-weight:600;}
+.diff-btn.on-hard{background:var(--red-bg);border-color:rgba(224,90,74,.35);color:var(--red);font-weight:600;}
+.logout-btn{background:var(--red-bg);border:1px solid rgba(224,90,74,.2);color:var(--red);border-radius:var(--r);padding:10px 18px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.logout-btn:hover{background:rgba(224,90,74,.2);}
+.cat-outdoor{background:var(--green-bg);color:var(--green);}
+.cat-social{background:var(--purple-bg);color:var(--purple);}
+.cat-creative{background:rgba(232,184,75,.12);color:var(--gold);}
+.cat-mindfulness{background:var(--blue-bg);color:var(--blue);}
+.cat-food{background:var(--coral-bg);color:var(--coral);}
+.cat-detox{background:var(--teal-bg);color:var(--teal);}
+.cat-fitness{background:var(--red-bg);color:var(--red);}
+.cat-wellbeing{background:var(--pink-bg);color:var(--pink);}
+.dot-outdoor{background:var(--green);}.dot-social{background:var(--purple);}
+.dot-creative{background:var(--gold);}.dot-mindfulness{background:var(--blue);}
+.dot-food{background:var(--coral);}.dot-detox{background:var(--teal);}
+.dot-fitness{background:var(--red);}.dot-wellbeing{background:var(--pink);}
+.ob-diff-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:16px;cursor:pointer;transition:all .2s;}
+.ob-diff-card:hover{border-color:rgba(232,184,75,.3);}
+.ob-diff-card.selected{border-color:var(--gold);background:var(--gold-dim);}
+.ob-cat-chip{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:12px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.ob-cat-chip:hover{border-color:rgba(232,184,75,.3);}
+.ob-cat-chip.on{background:var(--gold-dim);border-color:rgba(232,184,75,.4);}
+.summary-stat{background:var(--bg3);border-radius:var(--r2);padding:16px;text-align:center;flex:1;}
+.summary-stat-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--gold);letter-spacing:-.03em;}
+.summary-stat-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;}
+.cat-bar-item{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.cat-bar-track{flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;}
+.cat-bar-fill{height:100%;border-radius:3px;}
+.loading-screen{display:flex;align-items:center;justify-content:center;height:100dvh;background:var(--bg);flex-direction:column;gap:16px;}
+.loading-dots{display:flex;gap:8px;}
+.ld{width:8px;height:8px;background:var(--gold);border-radius:50%;animation:ldp 1.2s ease-in-out infinite;}
+.ld:nth-child(2){animation-delay:.2s;}.ld:nth-child(3){animation-delay:.4s;}
+@keyframes ldp{0%,80%,100%{transform:scale(.6);opacity:.3}40%{transform:scale(1);opacity:1}}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 20px;font-size:13px;color:var(--text);z-index:300;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loading-screen">
+  <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);">Daily<span style="color:var(--gold);">Quest</span></div>
+  <div class="loading-dots"><div class="ld"></div><div class="ld"></div><div class="ld"></div></div>
+</div>
+
+<!-- AUTH -->
+<div id="auth-wrap" style="display:none;">
+  <div class="auth-card">
+    <div class="auth-logo">Daily<span>Quest</span></div>
+    <div class="auth-tagline">One small real-world adventure, every day.</div>
+    <div class="auth-title" id="auth-title">Sign In</div>
+    <div id="field-name" class="field" style="display:none">
+      <label>Full Name</label><input id="inp-name" type="text" placeholder="Enter your name..."/>
+    </div>
+    <div class="field">
+      <label>Email</label><input id="inp-email" type="email" placeholder="Enter email..."/>
+    </div>
+    <div class="field">
+      <label>Password</label><input id="inp-password" type="password" placeholder="Enter password..."/>
+    </div>
+    <button class="auth-btn" id="auth-submit-btn" onclick="submitAuth()">LOG IN</button>
+    <div class="auth-error" id="auth-error"></div>
+    <div class="auth-switch" id="auth-switch">Don't have an account? <a onclick="toggleAuthMode()">Sign Up</a></div>
+    <div style="text-align:center;margin-top:12px;font-size:13px;"><a onclick="showForgotPassword()" style="color:var(--text3);cursor:pointer;" id="forgot-link">Forgot password?</a></div>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD -->
+<div id="forgot-wrap" style="display:none;min-height:100dvh;align-items:center;justify-content:center;padding:24px 20px;">
+  <div class="auth-card">
+    <div class="auth-logo">Daily<span>Quest</span></div>
+    <div class="auth-tagline">One small real-world adventure, every day.</div>
+    <div class="auth-title">Forgot Password</div>
+    <p style="font-size:13px;color:var(--text2);text-align:center;margin-bottom:22px;line-height:1.6;">Enter your email and we will send you a link to reset your password.</p>
+    <div class="field">
+      <label>Email</label>
+      <input id="forgot-email" type="email" placeholder="Enter your email..."/>
+    </div>
+    <button class="auth-btn" id="forgot-btn" onclick="submitForgotPassword()">SEND RESET LINK</button>
+    <div class="auth-error" id="forgot-error"></div>
+    <div class="auth-switch"><a onclick="showAuthFromForgot()" style="color:var(--gold);cursor:pointer;font-weight:500;">← Back to Sign In</a></div>
+  </div>
+</div>
+
+<!-- RESET PASSWORD -->
+<div id="reset-wrap" style="display:none;min-height:100dvh;align-items:center;justify-content:center;padding:24px 20px;">
+  <div class="auth-card">
+    <div class="auth-logo">Daily<span>Quest</span></div>
+    <div class="auth-tagline">One small real-world adventure, every day.</div>
+    <div class="auth-title">Reset Password</div>
+    <p style="font-size:13px;color:var(--text2);text-align:center;margin-bottom:22px;line-height:1.6;">Enter your new password below.</p>
+    <div class="field">
+      <label>New Password</label>
+      <input id="reset-password" type="password" placeholder="Enter new password..."/>
+    </div>
+    <div class="field">
+      <label>Confirm Password</label>
+      <input id="reset-confirm" type="password" placeholder="Confirm new password..."/>
+    </div>
+    <button class="auth-btn" id="reset-btn" onclick="submitResetPassword()">SET NEW PASSWORD</button>
+    <div class="auth-error" id="reset-error"></div>
+  </div>
+</div>
+
+<!-- ONBOARDING -->
+<div id="onboard-wrap" style="display:none;min-height:100dvh;background:var(--bg);overflow-y:auto;">
+  <div style="max-width:480px;margin:0 auto;padding:36px 24px 48px;">
+    <div style="display:flex;gap:6px;margin-bottom:32px;">
+      <div id="ob-dot1" style="height:3px;border-radius:3px;flex:1;background:var(--gold);transition:all .3s;"></div>
+      <div id="ob-dot2" style="height:3px;border-radius:3px;flex:1;background:var(--bg4);transition:all .3s;"></div>
+    </div>
+    <div id="ob-step1">
+      <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--text);letter-spacing:-.03em;margin-bottom:8px;">What kind of adventures?</div>
+      <div style="font-size:14px;color:var(--text2);margin-bottom:28px;line-height:1.6;">Tap the categories you want quests from. You can change these anytime in Settings.</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:32px;" id="ob-cat-grid"></div>
+      <button onclick="obNext()" style="width:100%;background:var(--gold);color:#1A1508;border:none;border-radius:var(--r);padding:14px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;">Continue →</button>
+    </div>
+    <div id="ob-step2" style="display:none;">
+      <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--text);letter-spacing:-.03em;margin-bottom:8px;">Choose your level</div>
+      <div style="font-size:14px;color:var(--text2);margin-bottom:28px;line-height:1.6;">How challenging do you want your daily quests?</div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:32px;">
+        <div class="ob-diff-card" id="ob-diff-scout" onclick="obSelectDiff('easy',this)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">🌱</span><span style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text);">Scout</span></div>
+            <div id="check-scout" style="display:none;"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="#E8B84B"/><polyline points="5.5 10 8.5 13 14.5 7" stroke="#1A1508" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+          </div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.5;">Short, simple quests under 5 minutes. Perfect for building the habit.</div>
+          <div style="margin-top:8px;font-size:11px;color:var(--green);font-weight:600;letter-spacing:.04em;">10–15 XP per quest</div>
+        </div>
+        <div class="ob-diff-card" id="ob-diff-explorer" onclick="obSelectDiff('medium',this)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">🧭</span><span style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text);">Explorer</span></div>
+            <div id="check-explorer" style="display:none;"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="#E8B84B"/><polyline points="5.5 10 8.5 13 14.5 7" stroke="#1A1508" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+          </div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.5;">10–30 minute quests that push you slightly outside your comfort zone.</div>
+          <div style="margin-top:8px;font-size:11px;color:var(--gold);font-weight:600;letter-spacing:.04em;">20–30 XP per quest</div>
+        </div>
+        <div class="ob-diff-card" id="ob-diff-legend" onclick="obSelectDiff('hard',this)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">⚔️</span><span style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text);">Legend</span></div>
+            <div id="check-legend" style="display:none;"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="#E8B84B"/><polyline points="5.5 10 8.5 13 14.5 7" stroke="#1A1508" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+          </div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.5;">Genuinely challenging quests requiring real effort, courage, or time.</div>
+          <div style="margin-top:8px;font-size:11px;color:var(--red);font-weight:600;letter-spacing:.04em;">40–55 XP per quest</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="obBack()" style="background:transparent;border:1px solid var(--border2);border-radius:var(--r);padding:14px 20px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text2);cursor:pointer;">← Back</button>
+        <button onclick="obFinish()" id="ob-finish-btn" style="flex:1;background:var(--gold);color:#1A1508;border:none;border-radius:var(--r);padding:14px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;">Start my adventure →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-wrap">
+  <div class="screen active" id="screen-home">
+    <div class="topbar">
+      <div class="topbar-title">Daily<span>Quest</span></div>
+      <div class="top-pills">
+        <div class="freeze-pill" id="freeze-pill" onclick="showFreezeModal()" style="display:none;">🧊 <span id="freeze-count">0</span></div>
+        <div class="streak-pill">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1C6 1 9 4 9 6.5C9 8.43 7.66 10 6 10 4.34 10 3 8.43 3 6.5 3 4 6 1 6 1Z" fill="currentColor"/></svg>
+          <span id="streak-text">0 day streak</span>
+        </div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val" id="stat-xp">0</div><div class="stat-lbl">Total XP</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-done">0</div><div class="stat-lbl">Done</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-streak">0</div><div class="stat-lbl">Streak</div></div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-header"><span class="progress-title">Weekly progress</span><span style="font-size:12px;color:var(--text2)" id="week-lbl">0 of 7</span></div>
+      <div class="progress-track"><div class="progress-fill" id="week-bar" style="width:0%"></div></div>
+    </div>
+    <div class="quest-wrap">
+      <div class="date-row" id="date-row">Today's Quest</div>
+      <div id="quest-area"><div style="padding:40px;text-align:center;"><div class="loading-dots" style="justify-content:center;"><div class="ld"></div><div class="ld"></div><div class="ld"></div></div></div></div>
+    </div>
+    <div class="section" id="bonus-section" style="display:none;padding-bottom:16px;"></div>
+  </div>
+
+  <div class="screen" id="screen-history">
+    <div class="topbar"><div class="topbar-title">History</div><span style="font-size:13px;color:var(--text3)" id="hist-count">0 quests</span></div>
+    <div class="section" style="padding-bottom:20px"><div id="hist-list"></div></div>
+  </div>
+
+  <div class="screen" id="screen-profile">
+    <div class="profile-header">
+      <div class="avatar" id="av-txt">A</div>
+      <div class="profile-name" id="pname-txt">Adventurer</div>
+      <div class="profile-level" id="plevel-txt">Level 1 — Wanderer</div>
+    </div>
+    <div class="xp-bar-wrap">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3)"><span>XP Progress</span><span id="xp-to-next"></span></div>
+      <div class="xp-bar-track"><div class="xp-bar-fill" id="xp-bar" style="width:0%"></div></div>
+      <div class="xp-row"><span id="xp-cur">0 XP</span><span id="xp-max"></span></div>
+    </div>
+    <div class="section" style="padding-bottom:24px">
+      <div class="section-title">Achievements</div>
+      <div class="ach-grid" id="ach-grid"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-settings">
+    <div class="topbar"><div class="topbar-title">Settings</div></div>
+    <div class="section" style="padding-bottom:24px">
+      <div class="section-title" style="margin-top:8px">Account</div>
+      <div class="settings-block">
+        <div class="settings-row col">
+          <div><div class="settings-label">Display name</div><div class="settings-sub">How your name appears in the app</div></div>
+          <input class="text-inp" id="name-inp" placeholder="Your name"/>
+        </div>
+        <div class="settings-row"><button class="save-btn" onclick="saveName()">Save name</button></div>
+      </div>
+      <div class="section-title">Difficulty</div>
+      <div class="settings-block">
+        <div class="settings-row col">
+          <div class="settings-sub">How challenging your daily quests are</div>
+          <div class="diff-row">
+            <button class="diff-btn" onclick="setDiff('easy',this)">🟢 Scout</button>
+            <button class="diff-btn" onclick="setDiff('medium',this)">🟡 Explorer</button>
+            <button class="diff-btn" onclick="setDiff('hard',this)">🔴 Legend</button>
+          </div>
+        </div>
+        <div class="settings-row"><button class="save-btn" onclick="saveDiff()">Save difficulty</button></div>
+      </div>
+      <div class="section-title">Quest Categories</div>
+      <div class="settings-block">
+        <div class="settings-row col">
+          <div class="settings-sub">Choose which types of quests you receive</div>
+          <div class="cat-grid" id="cat-grid"></div>
+        </div>
+        <div class="settings-row"><button class="save-btn" onclick="saveCats()">Save categories</button></div>
+      </div>
+      <div class="section-title">Account</div>
+      <div class="settings-block">
+        <div class="settings-row">
+          <div><div class="settings-label">Signed in as</div><div class="settings-sub" id="signed-in-as"></div></div>
+          <button class="logout-btn" onclick="logout()">Sign out</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="showScreen('home')">
+      <div class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L11 3l8 6.5V19a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M8 20V12h6v8"/></svg></div>
+      <div class="nav-label">Today</div>
+    </div>
+    <div class="nav-item" id="nav-history" onclick="showScreen('history')">
+      <div class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="16" height="16" rx="2"/><path d="M8 2v4M14 2v4M3 10h16"/></svg></div>
+      <div class="nav-label">History</div>
+    </div>
+    <div class="nav-item" id="nav-profile" onclick="showScreen('profile')">
+      <div class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="7" r="4"/><path d="M3 20c0-3.86 3.58-7 8-7s8 3.14 8 7"/></svg></div>
+      <div class="nav-label">Profile</div>
+    </div>
+    <div class="nav-item" id="nav-settings" onclick="showScreen('settings')">
+      <div class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="3"/><path d="M11 2v2M11 18v2M4.22 4.22l1.42 1.42M16.36 16.36l1.42 1.42M2 11h2M18 11h2M4.22 17.78l1.42-1.42M16.36 5.64l1.42-1.42"/></svg></div>
+      <div class="nav-label">Settings</div>
+    </div>
+  </nav>
+</div>
+
+<!-- PHOTO MODAL -->
+<div class="modal-overlay" id="modal-photo">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">📸 Photo proof</div><button class="modal-close" onclick="closeModal('modal-photo')">✕</button></div>
+    <div class="modal-sub">Take a photo to prove you completed this quest. Saved to your device only.</div>
+    <div class="photo-zone" id="photo-zone" onclick="document.getElementById('photo-input').click()">
+      <div class="photo-zone-icon">📷</div><div class="photo-zone-text">Tap to take a photo</div><div class="photo-zone-sub">Opens your camera</div>
+    </div>
+    <input type="file" id="photo-input" accept="image/*" capture="environment" onchange="photoSelected(event)"/>
+    <img id="photo-preview" class="photo-preview"/>
+    <button class="btn-gold" id="photo-submit" style="width:100%;margin-top:16px;display:none" onclick="submitPhoto()">Submit &amp; complete quest</button>
+  </div>
+</div>
+
+<!-- TIMER MODAL -->
+<div class="modal-overlay" id="modal-timer">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="timer-title">⏱ Timer</div><button class="modal-close" onclick="closeModal('modal-timer')">✕</button></div>
+    <div class="modal-sub" id="timer-sub">Stay present for the full duration.</div>
+    <div class="timer-display" id="timer-display">2:00</div>
+    <div class="timer-track"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
+    <button class="timer-btn" id="timer-btn" onclick="toggleTimer()">Start Timer</button>
+    <div class="timer-status" id="timer-status">Press start when you're ready</div>
+  </div>
+</div>
+
+<!-- REFLECTION MODAL -->
+<div class="modal-overlay" id="modal-reflection">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="refl-title">💬 Reflection</div><button class="modal-close" onclick="closeModal('modal-reflection')">✕</button></div>
+    <div class="modal-sub" id="refl-sub">How did it go?</div>
+    <div id="refl-mood-wrap">
+      <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:10px;">How did it feel?</div>
+      <div class="mood-row">
+        <button class="mood-btn" onclick="pickMood(this,'😊')">😊<span class="mood-lbl">Easy</span></button>
+        <button class="mood-btn" onclick="pickMood(this,'😅')">😅<span class="mood-lbl">Tough</span></button>
+        <button class="mood-btn" onclick="pickMood(this,'🤯')">🤯<span class="mood-lbl">Wow</span></button>
+        <button class="mood-btn" onclick="pickMood(this,'😐')">😐<span class="mood-lbl">Meh</span></button>
+      </div>
+    </div>
+    <div id="refl-fields"></div>
+    <button class="btn-gold" style="width:100%;margin-top:18px" onclick="submitReflection()">Complete quest</button>
+  </div>
+</div>
+
+<!-- FREEZE MODAL -->
+<div class="modal-overlay" id="modal-freeze">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🧊 Streak Freeze</div><button class="modal-close" onclick="closeModal('modal-freeze')">✕</button></div>
+    <div class="modal-sub">Protect your streak for when life gets in the way.</div>
+    <div id="freeze-body"></div>
+  </div>
+</div>
+
+<!-- WEEKLY SUMMARY MODAL -->
+<div class="modal-overlay" id="modal-summary">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">📊 Last Week's Summary</div><button class="modal-close" onclick="closeModal('modal-summary')">✕</button></div>
+    <div class="modal-sub">Here is how your week went.</div>
+    <div id="summary-body"></div>
+    <button class="btn-gold" style="width:100%;margin-top:20px" onclick="closeModal('modal-summary')">Start this week →</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════
+   CONFIG — change this to your Railway URL
+══════════════════════════════════════════ */
+const API = 'https://dailyquest-backend-production-3b22.up.railway.app';
+
+/* ══════════════════════════════════════════
+   CATEGORIES & DATA
+══════════════════════════════════════════ */
+const CATS={
+  outdoor:    {l:'Outdoor',    emoji:'🌿',color:'var(--green)',  desc:'Walk, explore, and discover things outside your door.'},
+  social:     {l:'Social',     emoji:'🤝',color:'var(--purple)', desc:'Connect with strangers, friends, and neighbours.'},
+  creative:   {l:'Creative',   emoji:'✏️',color:'var(--gold)',   desc:'Draw, write, photograph, and make things.'},
+  mindfulness:{l:'Mindfulness',emoji:'🧘',color:'var(--blue)',   desc:'Slow down, breathe, and notice small things.'},
+  food:       {l:'Food',       emoji:'🍽',color:'var(--coral)',  desc:'Try new foods, cook, and explore flavours.'},
+  detox:      {l:'Digital Detox',emoji:'📵',color:'var(--teal)', desc:'Step away from screens and reclaim your attention.'},
+  fitness:    {l:'Fitness',    emoji:'🏃',color:'var(--red)',    desc:'Move your body with walks, workouts, and challenges.'},
+  wellbeing:  {l:'Wellbeing',  emoji:'🌱',color:'var(--pink)',   desc:'Journal, reflect, and take care of your mind.'},
+};
+
+const LEVELS=[
+  {n:'Wanderer',m:0},{n:'Explorer',m:100},{n:'Trailblazer',m:300},
+  {n:'Pathfinder',m:600},{n:'Voyager',m:1000},{n:'Adventurer',m:1500},{n:'Legendary',m:2500}
+];
+
+const ACHIEVEMENTS=[
+  {id:'first', name:'First step',      emoji:'👣', u:s=>s.total_done>=1},
+  {id:'s3',    name:'3-day streak',    emoji:'🔥', u:s=>s.streak>=3},
+  {id:'s7',    name:'Week warrior',    emoji:'⚡', u:s=>s.streak>=7},
+  {id:'xp100', name:'Century',         emoji:'💯', u:s=>s.xp>=100},
+  {id:'d5',    name:'Veteran',         emoji:'🏅', u:s=>s.total_done>=5},
+  {id:'d10',   name:'Legend',          emoji:'🌟', u:s=>s.total_done>=10},
+  {id:'freeze',name:'Ice cold',        emoji:'🧊', u:s=>(s.freezeUsed||0)>=1},
+];
+
+/* ══════════════════════════════════════════
+   STATE
+══════════════════════════════════════════ */
+let token    = localStorage.getItem('dq_token');
+let userData = JSON.parse(localStorage.getItem('dq_user')||'null');
+let todayQuest   = null;
+let todayDone    = false;
+let bonusQuest   = null;
+let bonusDone    = false;
+let bonusSkips   = 3;
+let isRegMode    = false;
+let _obCats      = [];
+let _obDiff      = 'medium';
+let pendingBonusQ = null;
+
+function saveLocal(){
+  if(token) localStorage.setItem('dq_token', token);
+  if(userData) localStorage.setItem('dq_user', JSON.stringify(userData));
+}
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function diffLabel(d){ return{easy:'Scout',medium:'Explorer',hard:'Legend'}[d]||d; }
+function verifyIcon(v){ return{photo:'📸',timer:'⏱',reflection:'💬'}[v]||'✓'; }
+function verifyText(v){ return{photo:'Photo required',timer:'Timer required',reflection:'Reflection required'}[v]||''; }
+
+/* ══════════════════════════════════════════
+   API HELPERS
+══════════════════════════════════════════ */
+async function apiFetch(method, path, body){
+  const res = await fetch(API+path,{
+    method,
+    headers:{'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{})},
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.error||'Request failed');
+  return data;
+}
+
+/* ══════════════════════════════════════════
+   BOOT
+══════════════════════════════════════════ */
+async function boot(){
+  document.getElementById('loading-screen').style.display='flex';
+
+  // Check for password reset token in URL
+  const params=new URLSearchParams(window.location.search);
+  const resetToken=params.get('reset');
+  if(resetToken){
+    hideLoading();
+    showResetPassword(resetToken);
+    return;
+  }
+
+  if(token && userData){
+    try{
+      const data = await apiFetch('GET','/api/me');
+      userData = data.user; saveLocal();
+      hideLoading(); enterApp();
+    }catch{
+      token=null; userData=null;
+      localStorage.removeItem('dq_token'); localStorage.removeItem('dq_user');
+      hideLoading(); showAuth();
+    }
+  } else {
+    hideLoading(); showAuth();
+  }
+}
+
+function hideLoading(){ document.getElementById('loading-screen').style.display='none'; }
+function showAuth(){
+  document.getElementById('auth-wrap').style.display='flex';
+  document.getElementById('app-wrap').style.display='none';
+  document.getElementById('onboard-wrap').style.display='none';
+}
+
+/* ══════════════════════════════════════════
+   AUTH
+══════════════════════════════════════════ */
+function toggleAuthMode(){
+  isRegMode=!isRegMode;
+  document.getElementById('auth-title').textContent=isRegMode?'Sign Up':'Sign In';
+  document.getElementById('auth-submit-btn').textContent=isRegMode?'SIGN UP':'LOG IN';
+  document.getElementById('field-name').style.display=isRegMode?'block':'none';
+  document.getElementById('forgot-link').style.display=isRegMode?'none':'block';
+  document.getElementById('auth-switch').innerHTML=isRegMode
+    ?'Already have an account? <a onclick="toggleAuthMode()">Sign In</a>'
+    :"Don't have an account? <a onclick=\"toggleAuthMode()\">Sign Up</a>";
+  document.getElementById('auth-error').style.display='none';
+}
+
+async function submitAuth(){
+  const email = document.getElementById('inp-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('inp-password').value;
+  const name  = document.getElementById('inp-name').value.trim();
+  const btn   = document.getElementById('auth-submit-btn');
+  const errEl = document.getElementById('auth-error');
+  errEl.style.display='none';
+  if(!email||!pass){showAuthErr('Please fill in all fields.');return;}
+  if(pass.length<6){showAuthErr('Password must be at least 6 characters.');return;}
+  const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!emailRegex.test(email)){showAuthErr('Please enter a valid email address.');return;}
+  btn.disabled=true; btn.textContent='...';
+  try{
+    if(isRegMode){
+      if(!name){showAuthErr('Please enter your name.');btn.disabled=false;btn.textContent='SIGN UP';return;}
+      const data = await apiFetch('POST','/api/auth/register',{email,name,password:pass});
+      token=data.token; userData=data.user; saveLocal();
+      btn.disabled=false; btn.textContent='SIGN UP';
+      document.getElementById('auth-wrap').style.display='none';
+      showOnboarding();
+    } else {
+      const data = await apiFetch('POST','/api/auth/login',{email,password:pass});
+      token=data.token; userData=data.user; saveLocal();
+      btn.disabled=false; btn.textContent='LOG IN';
+      document.getElementById('auth-wrap').style.display='none';
+      enterApp();
+    }
+  }catch(e){
+    showAuthErr(e.message);
+    btn.disabled=false; btn.textContent=isRegMode?'SIGN UP':'LOG IN';
+  }
+}
+
+function showAuthErr(m){const e=document.getElementById('auth-error');e.textContent=m;e.style.display='block';}
+
+/* ══════════════════════════════════════════
+   FORGOT PASSWORD
+══════════════════════════════════════════ */
+function showForgotPassword(){
+  document.getElementById('auth-wrap').style.display='none';
+  document.getElementById('forgot-wrap').style.display='flex';
+  document.getElementById('forgot-email').value='';
+  document.getElementById('forgot-error').style.display='none';
+}
+
+function showAuthFromForgot(){
+  document.getElementById('forgot-wrap').style.display='none';
+  document.getElementById('auth-wrap').style.display='flex';
+}
+
+async function submitForgotPassword(){
+  const email=document.getElementById('forgot-email').value.trim().toLowerCase();
+  const btn=document.getElementById('forgot-btn');
+  const errEl=document.getElementById('forgot-error');
+  errEl.style.display='none';
+  if(!email){errEl.textContent='Please enter your email.';errEl.style.display='block';return;}
+  const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!emailRegex.test(email)){errEl.textContent='Please enter a valid email address.';errEl.style.display='block';return;}
+  btn.disabled=true; btn.textContent='Sending...';
+  try{
+    await apiFetch('POST','/api/auth/forgot-password',{email});
+    btn.textContent='SEND RESET LINK';
+    btn.disabled=false;
+    // Show success message regardless — prevents email enumeration
+    errEl.style.color='var(--green)';
+    errEl.textContent='If an account exists with that email, a reset link has been sent. Check your inbox.';
+    errEl.style.display='block';
+  }catch(e){
+    errEl.style.color='var(--red)';
+    errEl.textContent=e.message;
+    errEl.style.display='block';
+    btn.disabled=false; btn.textContent='SEND RESET LINK';
+  }
+}
+
+/* ══════════════════════════════════════════
+   RESET PASSWORD
+══════════════════════════════════════════ */
+let _resetToken=null;
+
+function showResetPassword(token){
+  _resetToken=token;
+  document.getElementById('auth-wrap').style.display='none';
+  document.getElementById('forgot-wrap').style.display='none';
+  document.getElementById('reset-wrap').style.display='flex';
+  document.getElementById('reset-password').value='';
+  document.getElementById('reset-confirm').value='';
+  document.getElementById('reset-error').style.display='none';
+}
+
+async function submitResetPassword(){
+  const pass=document.getElementById('reset-password').value;
+  const confirm=document.getElementById('reset-confirm').value;
+  const btn=document.getElementById('reset-btn');
+  const errEl=document.getElementById('reset-error');
+  errEl.style.display='none';
+  if(!pass||!confirm){errEl.textContent='Please fill in both fields.';errEl.style.display='block';return;}
+  if(pass.length<6){errEl.textContent='Password must be at least 6 characters.';errEl.style.display='block';return;}
+  if(pass!==confirm){errEl.textContent='Passwords do not match.';errEl.style.display='block';return;}
+  btn.disabled=true; btn.textContent='Saving...';
+  try{
+    await apiFetch('POST','/api/auth/reset-password',{token:_resetToken,password:pass});
+    // Success — show message and redirect to login
+    errEl.style.color='var(--green)';
+    errEl.textContent='Password updated! You can now sign in with your new password.';
+    errEl.style.display='block';
+    btn.textContent='SET NEW PASSWORD';
+    btn.disabled=false;
+    // Clear the token from URL
+    window.history.replaceState({},'','/');
+    // Redirect to login after 2 seconds
+    setTimeout(()=>{
+      document.getElementById('reset-wrap').style.display='none';
+      document.getElementById('auth-wrap').style.display='flex';
+    },2000);
+  }catch(e){
+    errEl.style.color='var(--red)';
+    errEl.textContent=e.message;
+    errEl.style.display='block';
+    btn.disabled=false; btn.textContent='SET NEW PASSWORD';
+  }
+}
+
+function logout(){
+  token=null; userData=null; todayQuest=null; todayDone=false;
+  bonusQuest=null; bonusDone=false; bonusSkips=3;
+  localStorage.removeItem('dq_token'); localStorage.removeItem('dq_user');
+  showAuth();
+  if(isRegMode) toggleAuthMode();
+  ['inp-email','inp-password','inp-name'].forEach(id=>document.getElementById(id).value='');
+}
+
+/* ══════════════════════════════════════════
+   ONBOARDING
+══════════════════════════════════════════ */
+function showOnboarding(){
+  _obCats=[]; _obDiff='medium';
+  document.getElementById('ob-step1').style.display='block';
+  document.getElementById('ob-step2').style.display='none';
+  document.getElementById('ob-dot1').style.background='var(--gold)';
+  document.getElementById('ob-dot2').style.background='var(--bg4)';
+  document.getElementById('ob-cat-grid').innerHTML=Object.entries(CATS).map(([k,v])=>`
+    <div class="ob-cat-chip" id="ob-chip-${k}" onclick="obToggleCat('${k}')">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+        <span style="font-size:20px;">${v.emoji}</span>
+        <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);">${v.l}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text3);line-height:1.4;">${v.desc}</div>
+    </div>`).join('');
+  document.getElementById('onboard-wrap').style.display='block';
+}
+
+function obToggleCat(cat){
+  const chip=document.getElementById('ob-chip-'+cat);
+  const idx=_obCats.indexOf(cat);
+  if(idx>=0){_obCats.splice(idx,1);chip.classList.remove('on');}
+  else{_obCats.push(cat);chip.classList.add('on');}
+}
+
+function obNext(){
+  if(_obCats.length===0){showToast('Please select at least one category.');return;}
+  document.getElementById('ob-step1').style.display='none';
+  document.getElementById('ob-step2').style.display='block';
+  document.getElementById('ob-dot2').style.background='var(--gold)';
+  obSelectDiff(_obDiff, document.getElementById('ob-diff-'+(_obDiff==='easy'?'scout':_obDiff==='hard'?'legend':'explorer')));
+}
+
+function obBack(){
+  document.getElementById('ob-step2').style.display='none';
+  document.getElementById('ob-step1').style.display='block';
+  document.getElementById('ob-dot2').style.background='var(--bg4)';
+}
+
+function obSelectDiff(diff,card){
+  _obDiff=diff;
+  ['ob-diff-scout','ob-diff-explorer','ob-diff-legend'].forEach(id=>document.getElementById(id).classList.remove('selected'));
+  ['check-scout','check-explorer','check-legend'].forEach(id=>document.getElementById(id).style.display='none');
+  card.classList.add('selected');
+  const checkId=diff==='easy'?'check-scout':diff==='hard'?'check-legend':'check-explorer';
+  document.getElementById(checkId).style.display='block';
+}
+
+async function obFinish(){
+  if(!_obDiff){showToast('Please choose a difficulty level.');return;}
+  if(_obCats.length===0){showToast('Please select at least one category.');return;}
+  const btn=document.getElementById('ob-finish-btn');
+  btn.disabled=true; btn.textContent='Saving...';
+  try{
+    const data = await apiFetch('PATCH','/api/me',{categories:_obCats, difficulty:_obDiff});
+    userData=data.user; saveLocal();
+    document.getElementById('onboard-wrap').style.display='none';
+    enterApp();
+  }catch(e){
+    showToast(e.message);
+    btn.disabled=false; btn.textContent='Start my adventure →';
+  }
+}
+
+/* ══════════════════════════════════════════
+   ENTER APP
+══════════════════════════════════════════ */
+function enterApp(){
+  document.getElementById('app-wrap').style.display='flex';
+  document.getElementById('app-wrap').classList.add('show');
+  showScreen('home');
+}
+
+function showScreen(name){
+  ['home','history','profile','settings'].forEach(s=>{
+    document.getElementById('screen-'+s).classList.toggle('active',s===name);
+    document.getElementById('nav-'+s).classList.toggle('active',s===name);
+  });
+  if(name==='home')    renderHome();
+  if(name==='history') renderHistory();
+  if(name==='profile') renderProfile();
+  if(name==='settings')renderSettings();
+}
+
+/* ══════════════════════════════════════════
+   HOME
+══════════════════════════════════════════ */
+function renderHomeStats(){
+  if(!userData) return;
+  document.getElementById('streak-text').textContent=(userData.streak||0)+' day streak';
+  document.getElementById('stat-xp').textContent=(userData.xp||0).toLocaleString();
+  document.getElementById('stat-done').textContent=userData.total_done||0;
+  document.getElementById('stat-streak').textContent=userData.streak||0;
+  const wk=Math.min(userData.week||0,7);
+  document.getElementById('week-lbl').textContent=wk+' of 7';
+  document.getElementById('week-bar').style.width=Math.round((wk/7)*100)+'%';
+  const fp=document.getElementById('freeze-pill');
+  const freezes=userData.freezes||0;
+  fp.style.display=freezes>0?'flex':'none';
+  document.getElementById('freeze-count').textContent=freezes;
+}
+
+async function renderHome(){
+  renderHomeStats();
+  const d=new Date();
+  document.getElementById('date-row').textContent=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  document.getElementById('bonus-section').style.display='none';
+  document.getElementById('quest-area').innerHTML='<div style="padding:40px;text-align:center;"><div class="loading-dots" style="justify-content:center;"><div class="ld"></div><div class="ld"></div><div class="ld"></div></div></div>';
+  try{
+    const data = await apiFetch('GET','/api/quest/today');
+    todayQuest=data.quest;
+    todayDone=!!data.completed;
+    if(todayDone){ renderDoneState(); }
+    else { renderQuestCard(todayQuest); }
+  }catch(e){
+    document.getElementById('quest-area').innerHTML=`<div style="padding:28px;text-align:center;color:var(--text2);font-size:14px">Could not load quest.<br><small style="color:var(--text3)">${e.message}</small></div>`;
+  }
+}
+
+function renderQuestCard(q){
+  const cat=CATS[q.category||q.cat]||CATS.outdoor;
+  const catKey=q.category||q.cat||'outdoor';
+  document.getElementById('quest-area').innerHTML=`
+    <div class="quest-card"><div class="quest-card-inner">
+      <div class="quest-top">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="cat-badge cat-${catKey}">${cat.l}</span>
+          <span class="diff-badge diff-${q.difficulty||'medium'}">${diffLabel(q.difficulty||'medium')}</span>
+        </div>
+        <span class="xp-badge">+${q.xp} XP</span>
+      </div>
+      <div class="quest-main">${q.quest}</div>
+      <div class="quest-hint">${q.hint}</div>
+      <div class="verify-tag">${verifyIcon(q.verify||'reflection')} ${verifyText(q.verify||'reflection')}</div>
+      <div class="quest-actions">
+        <button class="btn-gold" onclick="startVerify(false)">Mark complete</button>
+        <button class="btn-ghost" onclick="skipMainQuest()">Skip</button>
+      </div>
+    </div></div>`;
+}
+
+function renderDoneState(){
+  const q=todayQuest;
+  document.getElementById('quest-area').innerHTML=`
+    <div class="done-card">
+      <div class="done-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4CAF7D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="done-title">Quest complete!</div>
+      <div class="done-sub">${q?q.quest:''}</div>
+      ${q&&q.proof?`<div class="done-proof">${q.proof}</div>`:''}
+      <div class="done-xp">+${q?q.xp:''} XP earned</div>
+      <button class="share-btn" onclick="shareQuest()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Share this quest
+      </button>
+    </div>`;
+  renderBonusSection();
+}
+
+async function skipMainQuest(){
+  document.getElementById('quest-area').innerHTML='<div style="padding:40px;text-align:center;"><div class="loading-dots" style="justify-content:center;"><div class="ld"></div><div class="ld"></div><div class="ld"></div></div></div>';
+  try{
+    const data = await apiFetch('GET','/api/quest/today?skip=1');
+    todayQuest=data.quest; todayDone=false;
+    renderQuestCard(todayQuest);
+  }catch(e){showToast(e.message);}
+}
+
+function shareQuest(){
+  const q=todayQuest; if(!q) return;
+  const text=`I just completed a DailyQuest: "${q.quest}" — +${q.xp} XP earned! 🎯`;
+  if(navigator.share){ navigator.share({title:'Daily Quest',text}).catch(()=>{}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(()=>showToast('Copied to clipboard!')); }
+  else { showToast('Share not supported on this browser.'); }
+}
+
+/* ══════════════════════════════════════════
+   BONUS
+══════════════════════════════════════════ */
+function renderBonusSection(){
+  const bs=document.getElementById('bonus-section');
+  bs.style.display='block';
+  if(bonusDone){
+    bs.innerHTML=`<div style="text-align:center;padding:14px;font-size:14px;color:var(--green);background:var(--green-bg);border-radius:var(--r2)">Bonus quest done! Come back tomorrow. 🎉</div>`;
+    return;
+  }
+  if(bonusQuest){ renderBonusCard(bonusQuest); return; }
+  bs.innerHTML=`<button class="bonus-btn" onclick="rollBonus()">+ Roll a bonus quest</button>`;
+}
+
+async function rollBonus(){
+  if(bonusQuest!==null && bonusSkips<=0){ showToast('No bonus skips left for today!'); return; }
+  const isSkip = bonusQuest !== null;
+  const bs=document.getElementById('bonus-section');
+  bs.innerHTML='<div style="text-align:center;padding:16px;font-size:13px;color:var(--text3)">Generating bonus quest...</div>';
+  try{
+    const data = await apiFetch('POST','/api/quest/bonus',{skip: isSkip});
+    bonusQuest=data.quest;
+    if(typeof data.bonusSkipsLeft === 'number') bonusSkips=data.bonusSkipsLeft;
+    renderBonusCard(bonusQuest);
+  }catch(e){ showToast(e.message); renderBonusSection(); }
+}
+
+function renderBonusCard(q){
+  const bs=document.getElementById('bonus-section');
+  const catKey=q.category||q.cat||'outdoor';
+  const cat=CATS[catKey]||CATS.outdoor;
+  bs.innerHTML=`
+    <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>Bonus quest</span>
+      <span style="font-size:12px;color:${bonusSkips>0?'var(--text3)':'var(--red)'};">${bonusSkips>0?bonusSkips+' skip'+(bonusSkips!==1?'s':'')+' left':'No skips left'}</span>
+    </div>
+    <div class="quest-card"><div class="quest-card-inner">
+      <div class="quest-top">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="cat-badge cat-${catKey}">${cat.l}</span>
+          <span class="diff-badge diff-${q.difficulty||'medium'}">${diffLabel(q.difficulty||'medium')}</span>
+        </div>
+        <span class="xp-badge">+${q.xp} XP</span>
+      </div>
+      <div class="quest-main">${q.quest}</div>
+      <div class="quest-hint">${q.hint}</div>
+      <div class="verify-tag">${verifyIcon(q.verify||'reflection')} ${verifyText(q.verify||'reflection')}</div>
+      <div class="quest-actions">
+        <button class="btn-gold" onclick="startVerify(true)">Mark complete</button>
+        <button class="btn-ghost" ${bonusSkips<=0?'disabled':''}  onclick="${bonusSkips>0?'rollBonus()':'showToast(\'No skips left!\')'}">
+          Skip${bonusSkips>0?' ('+bonusSkips+')':''}
+        </button>
+      </div>
+    </div></div>`;
+}
+
+/* ══════════════════════════════════════════
+   VERIFICATION
+══════════════════════════════════════════ */
+let _isBonus=false;
+
+function startVerify(isBonus){
+  _isBonus=isBonus;
+  const q=isBonus?bonusQuest:todayQuest;
+  if(!q) return;
+  const v=q.verify||'reflection';
+  if(v==='photo')      openPhoto();
+  else if(v==='timer') openTimer(q);
+  else                 openReflection(q);
+}
+
+async function onVerifyDone(proof){
+  const q=_isBonus?bonusQuest:todayQuest;
+  if(!q) return;
+  try{
+    const data = await apiFetch('POST',`/api/quest/${q.id}/complete`,{proof});
+    userData=data.user; saveLocal();
+    if(_isBonus){
+      bonusDone=true; bonusQuest=null;
+      renderHomeStats();
+      const bs=document.getElementById('bonus-section');
+      bs.innerHTML=`<div style="text-align:center;padding:14px;font-size:14px;color:var(--green);background:var(--green-bg);border-radius:var(--r2)">Bonus done! +${data.xpEarned} XP 🎉</div>`;
+    } else {
+      todayDone=true;
+      if(todayQuest) todayQuest.proof=proof;
+      renderHomeStats();
+      renderDoneState();
+    }
+    showToast('+'+data.xpEarned+' XP! Quest complete 🎉');
+  }catch(e){ showToast(e.message); }
+}
+
+/* PHOTO */
+let _photoData=null;
+function openPhoto(){
+  _photoData=null;
+  document.getElementById('photo-zone').className='photo-zone';
+  document.getElementById('photo-zone').innerHTML='<div class="photo-zone-icon">📷</div><div class="photo-zone-text">Tap to take a photo</div><div class="photo-zone-sub">Opens your camera</div>';
+  document.getElementById('photo-preview').style.display='none';
+  document.getElementById('photo-submit').style.display='none';
+  document.getElementById('photo-input').value='';
+  document.getElementById('modal-photo').classList.add('show');
+}
+function photoSelected(e){
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    _photoData=ev.target.result;
+    document.getElementById('photo-zone').className='photo-zone has-photo';
+    document.getElementById('photo-zone').innerHTML='<div class="photo-zone-icon">✅</div><div class="photo-zone-text">Photo taken!</div><div class="photo-zone-sub">Tap to retake</div>';
+    const p=document.getElementById('photo-preview'); p.src=_photoData; p.style.display='block';
+    document.getElementById('photo-submit').style.display='block';
+  };
+  r.readAsDataURL(file);
+}
+function submitPhoto(){ closeModal('modal-photo'); onVerifyDone('📸 Photo proof submitted'); }
+
+/* TIMER */
+let _tInt=null,_tRem=0,_tTotal=0,_tRunning=false,_tDone=false;
+function openTimer(q){
+  clearInterval(_tInt);
+  const secs=q.timerSecs||120;
+  _tTotal=secs; _tRem=secs; _tRunning=false; _tDone=false;
+  const mins=Math.floor(secs/60);
+  document.getElementById('timer-title').textContent='⏱ '+(mins>=1?mins+' minute'+(mins>1?'s':''):secs+' seconds')+' timer';
+  document.getElementById('timer-sub').textContent='Stay focused for the full duration.';
+  updateTimerUI();
+  document.getElementById('timer-btn').textContent='Start Timer';
+  document.getElementById('timer-btn').className='timer-btn';
+  document.getElementById('timer-btn').onclick=toggleTimer;
+  document.getElementById('timer-fill').style.width='100%';
+  document.getElementById('timer-status').textContent="Press start when you're ready";
+  document.getElementById('modal-timer').classList.add('show');
+}
+function updateTimerUI(){ const m=Math.floor(_tRem/60),s=_tRem%60; document.getElementById('timer-display').textContent=m+':'+(s<10?'0':'')+s; }
+function toggleTimer(){
+  if(_tDone) return;
+  if(!_tRunning){
+    _tRunning=true;
+    document.getElementById('timer-btn').textContent='Pause';
+    document.getElementById('timer-btn').className='timer-btn paused';
+    document.getElementById('timer-status').textContent='Timer running — stay focused';
+    _tInt=setInterval(()=>{
+      _tRem--; updateTimerUI();
+      document.getElementById('timer-fill').style.width=Math.round((_tRem/_tTotal)*100)+'%';
+      if(_tRem<=0){
+        clearInterval(_tInt); _tDone=true; _tRunning=false;
+        document.getElementById('timer-display').textContent='Done!';
+        document.getElementById('timer-btn').textContent='Complete Quest ✓';
+        document.getElementById('timer-btn').className='timer-btn';
+        document.getElementById('timer-btn').onclick=submitTimer;
+        document.getElementById('timer-status').textContent='Timer complete! Tap to claim your XP.';
+        document.getElementById('timer-fill').style.width='0%';
+      }
+    },1000);
+  } else {
+    clearInterval(_tInt); _tRunning=false;
+    document.getElementById('timer-btn').textContent='Resume';
+    document.getElementById('timer-btn').className='timer-btn';
+    document.getElementById('timer-status').textContent='Paused — tap to resume';
+  }
+}
+function submitTimer(){ clearInterval(_tInt); closeModal('modal-timer'); onVerifyDone('⏱ Timer completed'); }
+
+/* REFLECTION */
+let _mood='', _currentQ=null;
+function openReflection(q){
+  _mood=''; _currentQ=q;
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('refl-title').textContent='💬 '+(CATS[q.category||q.cat]?.l||'Quest')+' reflection';
+  const showMood=q.showMood===true;
+  document.getElementById('refl-mood-wrap').style.display=showMood?'block':'none';
+  const fields=q.fields||['Describe what happened in one sentence.'];
+  document.getElementById('refl-fields').innerHTML=fields.map((f,i)=>`
+    <div class="refl-label">${f}</div>
+    <textarea class="refl-inp" id="refl-f-${i}" placeholder="Write here..." rows="${fields.length>3?3:4}" maxlength="500"></textarea>
+  `).join('');
+  document.getElementById('modal-reflection').classList.add('show');
+}
+function pickMood(btn,m){ _mood=m; document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); }
+function submitReflection(){
+  const q=_currentQ;
+  const fields=q.fields||[''];
+  const showMood=q.showMood===true;
+  if(showMood&&!_mood){ showToast('Please select how it felt.'); return; }
+  const answers=[];
+  for(let i=0;i<fields.length;i++){
+    const val=document.getElementById('refl-f-'+i)?.value.trim()||'';
+    if(val.length<2){ showToast('Please fill in all fields.'); return; }
+    answers.push(fields[i]+': '+val);
+  }
+  const proof=(_mood?_mood+' ':'')+answers.join(' | ');
+  closeModal('modal-reflection');
+  onVerifyDone(proof);
+}
+
+function closeModal(id){ document.getElementById(id).classList.remove('show'); if(id==='modal-timer') clearInterval(_tInt); }
+
+/* ══════════════════════════════════════════
+   FREEZE
+══════════════════════════════════════════ */
+function showFreezeModal(){
+  const freezes=userData?.freezes||0;
+  let body='';
+  if(freezes>0){
+    body=`<div style="background:var(--bg3);border-radius:var(--r2);padding:16px;margin-bottom:16px;">
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;">
+        You have <strong style="color:var(--ice)">${freezes} freeze${freezes!==1?'s':''}</strong> available. 
+        If you miss tomorrow your ${userData?.streak||0}-day streak is protected. Freezes are awarded every Monday.
+      </div>
+    </div>
+    <button class="btn-gold" style="width:100%;background:var(--ice);color:#0C2B35;" onclick="showToast('Freeze activated! Your streak is protected. 🧊');closeModal(\'modal-freeze\')">Activate freeze</button>`;
+  } else {
+    body=`<div style="background:var(--bg3);border-radius:var(--r2);padding:16px;text-align:center;">
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;">No freezes available right now.<br/>You earn 1 free freeze every Monday.</div>
+    </div>`;
+  }
+  document.getElementById('freeze-body').innerHTML=body;
+  document.getElementById('modal-freeze').classList.add('show');
+}
+
+/* ══════════════════════════════════════════
+   HISTORY
+══════════════════════════════════════════ */
+async function renderHistory(){
+  document.getElementById('hist-list').innerHTML='<div class="empty-state">Loading...</div>';
+  try{
+    const data = await apiFetch('GET','/api/quests/history');
+    const hist=data.quests||[];
+    document.getElementById('hist-count').textContent=hist.length+' quest'+(hist.length!==1?'s':'');
+    if(!hist.length){
+      document.getElementById('hist-list').innerHTML=`<div class="empty-state">No completed quests yet.<br>Head back to Today and start your adventure.</div>`;
+      return;
+    }
+    document.getElementById('hist-list').innerHTML=hist.map(h=>{
+      const catKey=h.category||h.cat||'outdoor';
+      const cat=CATS[catKey]||CATS.outdoor;
+      return`<div class="hist-item">
+            <div class="hist-dot dot-${catKey}"></div>
+        <div style="flex:1">
+          <div class="hist-text">${h.quest}</div>
+          <div class="hist-meta">
+            <span>${h.date||''}</span><span>·</span>
+            <span>${cat.l}</span>
+            <span class="diff-badge diff-${h.difficulty||'medium'}" style="padding:2px 8px;font-size:10px">${diffLabel(h.difficulty||'medium')}</span>
+            <span class="hist-xp">+${h.xp} XP</span>
+            ${h.bonus?'<span style="color:var(--text3)">bonus</span>':''}
+          </div>
+          ${h.proof?`<div class="hist-proof">${h.proof}</div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    document.getElementById('hist-list').innerHTML=`<div class="empty-state">${e.message}</div>`;
+  }
+}
+
+function renderProfile(){
+  if(!userData) return;
+  const name=userData.name||'Adventurer';
+  const initials=name.trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?';
+  document.getElementById('av-txt').textContent=initials;
+  document.getElementById('pname-txt').textContent=name;
+  const xp=userData.xp||0;
+  let lvl=0; for(let i=LEVELS.length-1;i>=0;i--){ if(xp>=LEVELS[i].m){lvl=i;break;} }
+  document.getElementById('plevel-txt').textContent=`Level ${lvl+1} — ${LEVELS[lvl].n}`;
+  const next=LEVELS[lvl+1]; const prev=LEVELS[lvl].m;
+  const pct=next?Math.round(((xp-prev)/(next.m-prev))*100):100;
+  document.getElementById('xp-bar').style.width=Math.min(pct,100)+'%';
+  document.getElementById('xp-cur').textContent=xp+' XP';
+  document.getElementById('xp-max').textContent=next?next.m+' XP':'Max level';
+  document.getElementById('xp-to-next').textContent=next?(next.m-xp)+' XP to next level':'';
+  document.getElementById('ach-grid').innerHTML=ACHIEVEMENTS.map(a=>`
+    <div class="ach-item${a.u(userData)?'':' locked'}">
+      <span class="ach-icon">${a.emoji}</span>
+      <div class="ach-name">${a.name}</div>
+    </div>`).join('');
+}
+
+let _pendingDiff=null;
+
+function renderSettings(){
+  if(!userData) return;
+  document.getElementById('name-inp').value=userData.name||'';
+  document.getElementById('signed-in-as').textContent=userData.email||'';
+  _pendingDiff=userData.difficulty||'medium';
+  document.querySelectorAll('.diff-btn').forEach(btn=>{
+    const match=btn.getAttribute('onclick').match(/setDiff\('(\w+)'/);
+    const key=match?match[1]:'medium';
+    btn.className='diff-btn'+(key===_pendingDiff?' on-'+key:'');
+  });
+  const userCats=Array.isArray(userData.categories)?userData.categories:(userData.categories||'').split(',');
+  document.getElementById('cat-grid').innerHTML=Object.entries(CATS).map(([k,v])=>`
+    <button class="cat-chip${userCats.includes(k)?' on':''}" onclick="toggleCat('${k}')">
+      <span class="cat-dot" style="background:${v.color}"></span>${v.l}
+    </button>`).join('');
+}
+
+function setDiff(d,btn){
+  _pendingDiff=d;
+  document.querySelectorAll('.diff-btn').forEach(b=>b.className='diff-btn');
+  btn.className='diff-btn on-'+d;
+}
+
+async function saveDiff(){
+  if(!_pendingDiff) return;
+  try{
+    const data=await apiFetch('PATCH','/api/me',{difficulty:_pendingDiff});
+    userData=data.user; saveLocal();
+    showToast('Difficulty saved! Takes effect from tomorrow.');
+  }catch(e){ showToast(e.message); }
+}
+
+function toggleCat(cat){
+  const userCats=Array.isArray(userData.categories)?[...userData.categories]:(userData.categories||'').split(',');
+  const i=userCats.indexOf(cat);
+  if(i>=0&&userCats.length>1) userCats.splice(i,1);
+  else if(i<0) userCats.push(cat);
+  userData.categories=userCats;
+  renderSettings();
+}
+
+async function saveCats(){
+  const userCats=Array.isArray(userData.categories)?userData.categories:(userData.categories||'').split(',');
+  try{
+    const data=await apiFetch('PATCH','/api/me',{categories:userCats});
+    userData=data.user; saveLocal();
+    showToast('Categories saved! Takes effect from tomorrow.');
+  }catch(e){ showToast(e.message); }
+}
+
+async function saveName(){
+  const name=document.getElementById('name-inp').value.trim();
+  if(!name){ showToast('Please enter a name.'); return; }
+  try{
+    const data=await apiFetch('PATCH','/api/me',{name});
+    userData=data.user; saveLocal();
+    renderProfile();
+    showToast('Name saved!');
+  }catch(e){ showToast(e.message); }
+}
+
+function showToast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+boot();
+</script>
+</body>
+</html>
