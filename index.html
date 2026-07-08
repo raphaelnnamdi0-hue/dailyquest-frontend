@@ -150,10 +150,15 @@ html,body{height:100%;background:#0C0B09;color:#F0EBE0;font-family:'DM Sans',san
 .xp-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:5px;transition:width .8s cubic-bezier(.34,1.56,.64,1);}
 .xp-row{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:5px;}
 .ach-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-.ach-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 8px;text-align:center;}
-.ach-item.locked{opacity:.3;}
+.ach-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 8px;text-align:center;transition:all .2s;cursor:pointer;position:relative;}
+.ach-item.unlocked{border-color:rgba(232,184,75,.3);background:var(--gold-dim);}
+.ach-item.locked{opacity:.35;filter:grayscale(1);}
+.ach-item.locked:hover{opacity:.5;}
 .ach-icon{font-size:20px;margin-bottom:5px;display:block;}
 .ach-name{font-size:10px;color:var(--text2);font-weight:500;line-height:1.3;}
+.ach-item.unlocked .ach-name{color:var(--gold);}
+/* Hint tooltip */
+.ach-hint-bubble{position:fixed;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:8px 12px;font-size:12px;color:var(--text2);max-width:200px;z-index:400;pointer-events:none;opacity:0;transition:opacity .2s;line-height:1.4;}
 .settings-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:12px;}
 .settings-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);}
 .settings-row:last-child{border-bottom:none;}
@@ -502,6 +507,20 @@ html,body{height:100%;background:#0C0B09;color:#F0EBE0;font-family:'DM Sans',san
   </div>
 </div>
 
+<!-- ACHIEVEMENT HINT BUBBLE -->
+<div class="ach-hint-bubble" id="ach-hint-bubble"></div>
+
+<!-- ACHIEVEMENT UNLOCK MODAL -->
+<div class="modal-overlay" id="modal-achievement">
+  <div class="modal" style="text-align:center;">
+    <div style="font-size:64px;margin-bottom:16px;" id="ach-modal-emoji">🏆</div>
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">Achievement Unlocked!</div>
+    <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--text);letter-spacing:-.02em;margin-bottom:10px;" id="ach-modal-name">First step</div>
+    <div style="font-size:14px;color:var(--text2);margin-bottom:28px;line-height:1.5;" id="ach-modal-hint">You completed your first quest.</div>
+    <button class="btn-gold" style="width:100%" onclick="nextAchievementModal()">Awesome! 🎉</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -530,13 +549,36 @@ const LEVELS=[
 ];
 
 const ACHIEVEMENTS=[
-  {id:'first', name:'First step',      emoji:'👣', u:s=>s.total_done>=1},
-  {id:'s3',    name:'3-day streak',    emoji:'🔥', u:s=>s.streak>=3},
-  {id:'s7',    name:'Week warrior',    emoji:'⚡', u:s=>s.streak>=7},
-  {id:'xp100', name:'Century',         emoji:'💯', u:s=>s.xp>=100},
-  {id:'d5',    name:'Veteran',         emoji:'🏅', u:s=>s.total_done>=5},
-  {id:'d10',   name:'Legend',          emoji:'🌟', u:s=>s.total_done>=10},
-  {id:'freeze',name:'Ice cold',        emoji:'🧊', u:s=>(s.freezeUsed||0)>=1},
+  // Streak achievements
+  {id:'first',  name:'First step',       emoji:'👣', hint:'Complete your first quest',                         u:(u,h)=>u.total_done>=1},
+  {id:'s3',     name:'3-day streak',     emoji:'🔥', hint:'Reach a 3 day streak',                             u:(u,h)=>u.streak>=3},
+  {id:'s7',     name:'Week warrior',     emoji:'⚡', hint:'Reach a 7 day streak',                             u:(u,h)=>u.streak>=7},
+  {id:'s21',    name:'On fire',          emoji:'🔥', hint:'Reach a 21 day streak',                            u:(u,h)=>u.streak>=21},
+  {id:'s30',    name:'Unstoppable',      emoji:'💎', hint:'Reach a 30 day streak',                            u:(u,h)=>u.streak>=30},
+  // XP achievements
+  {id:'xp100',  name:'Century',          emoji:'💯', hint:'Earn 100 XP',                                      u:(u,h)=>u.xp>=100},
+  // Quest count achievements
+  {id:'d5',     name:'Veteran',          emoji:'🏅', hint:'Complete 5 quests total',                          u:(u,h)=>u.total_done>=5},
+  {id:'d10',    name:'Legend',           emoji:'🌟', hint:'Complete 10 quests total',                         u:(u,h)=>u.total_done>=10},
+  {id:'d50',    name:'Centurion',        emoji:'🏆', hint:'Complete 50 quests total',                         u:(u,h)=>u.total_done>=50},
+  {id:'d100',   name:'Elite',            emoji:'👑', hint:'Complete 100 quests total',                        u:(u,h)=>u.total_done>=100},
+  // Category achievements
+  {id:'exp',    name:'Explorer',         emoji:'🗺', hint:'Complete 3 outdoor quests',                        u:(u,h)=>h.filter(q=>q.category==='outdoor').length>=3},
+  {id:'soc',    name:'Social butterfly', emoji:'🦋', hint:'Complete 3 social quests',                         u:(u,h)=>h.filter(q=>q.category==='social').length>=3},
+  {id:'chef',   name:'Chef',             emoji:'👨‍🍳', hint:'Complete 3 food quests',                           u:(u,h)=>h.filter(q=>q.category==='food').length>=3},
+  {id:'maker',  name:'Maker',            emoji:'✨', hint:'Complete 3 creative quests',                       u:(u,h)=>h.filter(q=>q.category==='creative').length>=3},
+  {id:'zen',    name:'Zen',              emoji:'🧘', hint:'Complete 3 mindfulness quests',                    u:(u,h)=>h.filter(q=>q.category==='mindfulness').length>=3},
+  {id:'off',    name:'Unplugged',        emoji:'📵', hint:'Complete 3 digital detox quests',                  u:(u,h)=>h.filter(q=>q.category==='detox').length>=3},
+  {id:'iron',   name:'Iron will',        emoji:'💪', hint:'Complete 3 fitness quests',                        u:(u,h)=>h.filter(q=>q.category==='fitness').length>=3},
+  {id:'bloom',  name:'Flourishing',      emoji:'🌱', hint:'Complete 3 wellbeing quests',                      u:(u,h)=>h.filter(q=>q.category==='wellbeing').length>=3},
+  // Variety achievements
+  {id:'allcat', name:'Well rounded',     emoji:'🌍', hint:'Complete a quest in all 8 categories',             u:(u,h)=>[...new Set(h.map(q=>q.category))].length>=8},
+  {id:'allround',name:'All rounder',     emoji:'🎯', hint:'Complete quests in 5 different categories in one week', u:(u,h)=>Object.keys(u.week_cats||{}).length>=5},
+  // Difficulty achievements
+  {id:'rising', name:'Rising',           emoji:'🧗', hint:'Complete 10 Explorer difficulty quests',           u:(u,h)=>h.filter(q=>q.difficulty==='medium').length>=10},
+  {id:'legendarytier',name:'Legend tier',emoji:'⚔️', hint:'Complete 5 Legend difficulty quests',             u:(u,h)=>h.filter(q=>q.difficulty==='hard').length>=5},
+  // Freeze achievement
+  {id:'freeze', name:'Ice cold',         emoji:'🧊', hint:'Use a streak freeze once',                         u:(u,h)=>(u.freezeUsedTotal||u.freeze_used_total||0)>=1},
 ];
 
 /* ══════════════════════════════════════════
@@ -597,6 +639,11 @@ async function boot(){
     try{
       const data = await apiFetch('GET','/api/me');
       userData = data.user; saveLocal();
+      // Initialise prevUnlocked silently so existing achievements don't retrigger
+      try{
+        const hData=await apiFetch('GET','/api/quests/history?limit=200');
+        _prevUnlocked=getUnlockedIds(userData,hData.quests||[]);
+      }catch(e){}
       hideLoading(); enterApp();
     }catch{
       token=null; userData=null;
@@ -1028,6 +1075,8 @@ async function onVerifyDone(proof){
       renderDoneState();
     }
     showToast('+'+data.xpEarned+' XP! Quest complete 🎉');
+    // Check for newly unlocked achievements
+    checkNewAchievements();
   }catch(e){ showToast(e.message); }
 }
 
@@ -1196,7 +1245,7 @@ async function renderHistory(){
   }
 }
 
-function renderProfile(){
+async function renderProfile(){
   if(!userData) return;
   const name=userData.name||'Adventurer';
   const initials=name.trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?';
@@ -1211,11 +1260,41 @@ function renderProfile(){
   document.getElementById('xp-cur').textContent=xp+' XP';
   document.getElementById('xp-max').textContent=next?next.m+' XP':'Max level';
   document.getElementById('xp-to-next').textContent=next?(next.m-xp)+' XP to next level':'';
-  document.getElementById('ach-grid').innerHTML=ACHIEVEMENTS.map(a=>`
-    <div class="ach-item${a.u(userData)?'':' locked'}">
-      <span class="ach-icon">${a.emoji}</span>
-      <div class="ach-name">${a.name}</div>
-    </div>`).join('');
+
+  // Fetch quest history to check category and difficulty based achievements
+  let hist=[];
+  try{
+    const data=await apiFetch('GET','/api/quests/history?limit=200');
+    hist=data.quests||[];
+  }catch(e){ /* use empty history if fails */ }
+
+  // Split into unlocked and locked
+  const unlocked=ACHIEVEMENTS.filter(a=>a.u(userData,hist));
+  const locked=ACHIEVEMENTS.filter(a=>!a.u(userData,hist));
+
+  // Render unlocked first then locked
+  document.getElementById('ach-grid').innerHTML=[
+    ...unlocked.map(a=>`
+      <div class="ach-item unlocked" title="${a.hint}">
+        <span class="ach-icon">${a.emoji}</span>
+        <div class="ach-name">${a.name}</div>
+      </div>`),
+    ...locked.map(a=>`
+      <div class="ach-item locked" onclick="showAchHint(this,'${a.hint.replace(/'/g,'&#39;')}')" title="${a.hint}">
+        <span class="ach-icon">${a.emoji}</span>
+        <div class="ach-name">${a.name}</div>
+      </div>`)
+  ].join('');
+}
+
+function showAchHint(el, hint){
+  const bubble=document.getElementById('ach-hint-bubble');
+  bubble.textContent=hint;
+  const rect=el.getBoundingClientRect();
+  bubble.style.left=Math.min(rect.left, window.innerWidth-220)+'px';
+  bubble.style.top=(rect.top-48)+'px';
+  bubble.style.opacity='1';
+  setTimeout(()=>bubble.style.opacity='0', 2500);
 }
 
 let _pendingDiff=null;
@@ -1279,6 +1358,45 @@ async function saveName(){
     renderProfile();
     showToast('Name saved!');
   }catch(e){ showToast(e.message); }
+}
+
+/* ══════════════════════════════════════════
+   ACHIEVEMENT UNLOCK DETECTION
+══════════════════════════════════════════ */
+let _prevUnlocked=new Set();
+let _achQueue=[];
+
+function getUnlockedIds(u,h){
+  return new Set(ACHIEVEMENTS.filter(a=>a.u(u,h)).map(a=>a.id));
+}
+
+async function checkNewAchievements(){
+  try{
+    const data=await apiFetch('GET','/api/quests/history?limit=200');
+    const hist=data.quests||[];
+    const nowUnlocked=getUnlockedIds(userData,hist);
+    const newOnes=[...nowUnlocked].filter(id=>!_prevUnlocked.has(id));
+    _prevUnlocked=nowUnlocked;
+    if(newOnes.length>0){
+      _achQueue=newOnes.map(id=>ACHIEVEMENTS.find(a=>a.id===id)).filter(Boolean);
+      showNextAchievementModal();
+    }
+  }catch(e){ /* silent fail */ }
+}
+
+function showNextAchievementModal(){
+  if(_achQueue.length===0) return;
+  const ach=_achQueue[0];
+  document.getElementById('ach-modal-emoji').textContent=ach.emoji;
+  document.getElementById('ach-modal-name').textContent=ach.name;
+  document.getElementById('ach-modal-hint').textContent=ach.hint;
+  document.getElementById('modal-achievement').classList.add('show');
+}
+
+function nextAchievementModal(){
+  document.getElementById('modal-achievement').classList.remove('show');
+  _achQueue.shift();
+  if(_achQueue.length>0){setTimeout(showNextAchievementModal,400);}
 }
 
 function showToast(msg){
