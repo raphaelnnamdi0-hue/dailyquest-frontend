@@ -180,6 +180,7 @@ html,body{height:100%;background:#0C0B09;color:#F0EBE0;font-family:'DM Sans',san
 .diff-btn.on-easy{background:var(--green-bg);border-color:rgba(76,175,125,.35);color:var(--green);font-weight:600;}
 .diff-btn.on-medium{background:var(--gold-dim);border-color:rgba(232,184,75,.35);color:var(--gold);font-weight:600;}
 .diff-btn.on-hard{background:var(--red-bg);border-color:rgba(224,90,74,.35);color:var(--red);font-weight:600;}
+.diff-btn.locked{opacity:.5;cursor:pointer;}
 .logout-btn{background:var(--red-bg);border:1px solid rgba(224,90,74,.2);color:var(--red);border-radius:var(--r);padding:10px 18px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;}
 .logout-btn:hover{background:rgba(224,90,74,.2);}
 .cat-outdoor{background:var(--green-bg);color:var(--green);}
@@ -213,6 +214,9 @@ html,body{height:100%;background:#0C0B09;color:#F0EBE0;font-family:'DM Sans',san
 @keyframes ldp{0%,80%,100%{transform:scale(.6);opacity:.3}40%{transform:scale(1);opacity:1}}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 20px;font-size:13px;color:var(--text);z-index:300;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
+.pro-badge{display:inline-flex;align-items:center;gap:3px;background:var(--gold-dim);color:var(--gold);border:1px solid rgba(232,184,75,.3);border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-left:6px;}
+.locked-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--gold-dim);border:1px solid rgba(232,184,75,.25);border-radius:var(--r2);padding:12px 14px;font-size:13px;color:var(--gold);cursor:pointer;margin-bottom:8px;}
+.pro-feature-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);padding:2px 0;}
 </style>
 </head>
 <body>
@@ -291,7 +295,8 @@ html,body{height:100%;background:#0C0B09;color:#F0EBE0;font-family:'DM Sans',san
     </div>
     <div id="ob-step1">
       <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--text);letter-spacing:-.03em;margin-bottom:8px;">What kind of adventures?</div>
-      <div style="font-size:14px;color:var(--text2);margin-bottom:28px;line-height:1.6;">Tap the categories you want quests from. You can change these anytime in Settings.</div>
+      <div style="font-size:14px;color:var(--text2);margin-bottom:12px;line-height:1.6;">Tap the categories you want quests from. You can change these anytime in Settings.</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:20px;line-height:1.5;">Free plan draws quests from your first 2 picks. Upgrade anytime to unlock all 8.</div>
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:32px;" id="ob-cat-grid"></div>
       <button onclick="obNext()" style="width:100%;background:var(--gold);color:#1A1508;border:none;border-radius:var(--r);padding:14px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;">Continue →</button>
     </div>
@@ -363,7 +368,7 @@ html,body{height:100%;background:#0C0B09;color:#F0EBE0;font-family:'DM Sans',san
 
   <div class="screen" id="screen-history">
     <div class="topbar"><div class="topbar-title">History</div><span style="font-size:13px;color:var(--text3)" id="hist-count">0 quests</span></div>
-    <div class="section" style="padding-bottom:20px"><div id="hist-list"></div></div>
+    <div class="section" style="padding-bottom:20px"><div id="hist-banner"></div><div id="hist-list"></div></div>
   </div>
 
   <div class="screen" id="screen-profile">
@@ -397,8 +402,8 @@ html,body{height:100%;background:#0C0B09;color:#F0EBE0;font-family:'DM Sans',san
       <div class="section-title">Difficulty</div>
       <div class="settings-block">
         <div class="settings-row col">
-          <div class="settings-sub">How challenging your daily quests are</div>
-          <div class="diff-row">
+          <div class="settings-sub" id="diff-sub">How challenging your daily quests are</div>
+          <div class="diff-row" id="diff-row">
             <button class="diff-btn" onclick="setDiff('easy',this)">🟢 Scout</button>
             <button class="diff-btn" onclick="setDiff('medium',this)">🟡 Explorer</button>
             <button class="diff-btn" onclick="setDiff('hard',this)">🔴 Legend</button>
@@ -409,7 +414,7 @@ html,body{height:100%;background:#0C0B09;color:#F0EBE0;font-family:'DM Sans',san
       <div class="section-title">Quest Categories</div>
       <div class="settings-block">
         <div class="settings-row col">
-          <div class="settings-sub">Choose which types of quests you receive</div>
+          <div class="settings-sub" id="cat-sub">Choose which types of quests you receive</div>
           <div class="cat-grid" id="cat-grid"></div>
         </div>
         <div class="settings-row"><button class="save-btn" onclick="saveCats()">Save categories</button></div>
@@ -522,6 +527,26 @@ html,body{height:100%;background:#0C0B09;color:#F0EBE0;font-family:'DM Sans',san
   </div>
 </div>
 
+<!-- UPGRADE MODAL -->
+<div class="modal-overlay" id="modal-upgrade">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">⭐ Unlock DailyQuest Pro</div><button class="modal-close" onclick="closeModal('modal-upgrade')">✕</button></div>
+    <div class="modal-sub" id="upgrade-reason">Upgrade to unlock this feature and more.</div>
+    <div style="margin:4px 0 22px;">
+      <div class="pro-feature-row">✅ All 8 quest categories</div>
+      <div class="pro-feature-row">✅ Explorer &amp; Legend difficulty</div>
+      <div class="pro-feature-row">✅ Full quest history</div>
+      <div class="pro-feature-row">✅ Bonus quests — 3 per day</div>
+      <div class="pro-feature-row">✅ Streak freeze — 1 per week</div>
+      <div class="pro-feature-row">✅ Weekly summary</div>
+      <div class="pro-feature-row">✅ All 23 achievements</div>
+      <div class="pro-feature-row">✅ Unlimited quest skips</div>
+      <div class="pro-feature-row">✅ All 7 levels</div>
+    </div>
+    <button class="btn-gold" style="width:100%" onclick="upgradeNow()">Unlock everything for $2.99/month</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -600,11 +625,18 @@ const ACHIEVEMENTS=[
   {id:'freeze', name:'Ice cold',         emoji:'🧊', hint:'Use a streak freeze once',                         u:(u,h)=>(u.freezeUsedTotal||u.freeze_used_total||0)>=1},
 ];
 
+// ─── Paywall limits (mirrors backend FREE_* constants — display only) ───────
+// The 8 achievements free users can unlock — chosen as the most achievable
+// early on. This is a curated ID list, not simply "first N in the array".
+const FREE_ACHIEVEMENT_IDS = ['first','s3','s7','xp100','d5','d10','exp','freeze'];
+const FREE_LEVEL_CAP_INDEX = 4; // Level 5 — Explorer (0-indexed)
+
 /* ══════════════════════════════════════════
    STATE
 ══════════════════════════════════════════ */
 let token    = localStorage.getItem('dq_token');
 let userData = JSON.parse(localStorage.getItem('dq_user')||'null');
+let planData = null; // { isPro, limits, usage } — from GET /api/plan
 let todayQuest   = null;
 let todayDone    = false;
 let bonusQuest   = null;
@@ -619,6 +651,8 @@ function saveLocal(){
   if(token) localStorage.setItem('dq_token', token);
   if(userData) localStorage.setItem('dq_user', JSON.stringify(userData));
 }
+
+function isPro(){ return !!(planData && planData.isPro); }
 
 function todayStr(){ return new Date().toISOString().slice(0,10); }
 function diffLabel(d){ return{easy:'Scout',medium:'Explorer',hard:'Legend'}[d]||d; }
@@ -635,8 +669,33 @@ async function apiFetch(method, path, body){
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = await res.json();
-  if(!res.ok) throw new Error(data.error||'Request failed');
+  if(!res.ok){
+    const err = new Error(data.error||'Request failed');
+    err.upgradeRequired = !!data.upgradeRequired;
+    err.feature = data.feature || null;
+    throw err;
+  }
   return data;
+}
+
+async function fetchPlan(){
+  try{ planData = await apiFetch('GET','/api/plan'); }
+  catch(e){ planData=null; }
+}
+
+/* ══════════════════════════════════════════
+   UPGRADE / PAYWALL UI
+══════════════════════════════════════════ */
+function showUpgradeModal(reason){
+  document.getElementById('upgrade-reason').textContent = reason || 'Upgrade to unlock this feature and more.';
+  document.getElementById('modal-upgrade').classList.add('show');
+}
+
+function upgradeNow(){
+  apiFetch('POST','/api/subscription/upgrade').catch(()=>{}).finally(()=>{
+    closeModal('modal-upgrade');
+    showToast('Payment coming soon 💳');
+  });
 }
 
 /* ══════════════════════════════════════════
@@ -658,6 +717,7 @@ async function boot(){
     try{
       const data = await apiFetch('GET','/api/me');
       userData = data.user; saveLocal();
+      await fetchPlan();
       // Initialise prevUnlocked silently so existing achievements don't retrigger
       try{
         const hData=await apiFetch('GET','/api/quests/history?limit=200');
@@ -719,6 +779,7 @@ async function submitAuth(){
     } else {
       const data = await apiFetch('POST','/api/auth/login',{email,password:pass});
       token=data.token; userData=data.user; saveLocal();
+      await fetchPlan();
       btn.disabled=false; btn.textContent='LOG IN';
       document.getElementById('auth-wrap').style.display='none';
       enterApp();
@@ -820,7 +881,7 @@ async function submitResetPassword(){
 }
 
 function logout(){
-  token=null; userData=null; todayQuest=null; todayDone=false;
+  token=null; userData=null; planData=null; todayQuest=null; todayDone=false;
   bonusQuest=null; bonusDone=false; bonusSkips=3;
   localStorage.removeItem('dq_token'); localStorage.removeItem('dq_user');
   showAuth();
@@ -849,6 +910,8 @@ function showOnboarding(){
 }
 
 function obToggleCat(cat){
+  // Selection stays unrestricted here — the free-tier 2-category limit only
+  // applies at quest-generation time on the backend.
   const chip=document.getElementById('ob-chip-'+cat);
   const idx=_obCats.indexOf(cat);
   if(idx>=0){_obCats.splice(idx,1);chip.classList.remove('on');}
@@ -886,6 +949,7 @@ async function obFinish(){
   try{
     const data = await apiFetch('PATCH','/api/me',{categories:_obCats, difficulty:_obDiff});
     userData=data.user; saveLocal();
+    await fetchPlan();
     document.getElementById('onboard-wrap').style.display='none';
     enterApp();
   }catch(e){
@@ -994,7 +1058,10 @@ async function skipMainQuest(){
     const data = await apiFetch('GET','/api/quest/today?skip=1');
     todayQuest=data.quest; todayDone=false;
     renderQuestCard(todayQuest);
-  }catch(e){showToast(e.message);}
+  }catch(e){
+    if(e.upgradeRequired){ renderQuestCard(todayQuest); showUpgradeModal("You've used all 3 free skips today. Upgrade for unlimited skips."); }
+    else showToast(e.message);
+  }
 }
 
 function shareQuest(){
@@ -1011,6 +1078,17 @@ function shareQuest(){
 function renderBonusSection(){
   const bs=document.getElementById('bonus-section');
   bs.style.display='block';
+
+  if(!isPro()){
+    bs.innerHTML=`
+      <div class="section-title">Bonus quest</div>
+      <div class="locked-banner" onclick="showUpgradeModal('Bonus quests are a Pro feature.')">
+        <span>🔒 Bonus quests are locked on the free plan</span>
+        <span style="font-weight:700;">Upgrade</span>
+      </div>`;
+    return;
+  }
+
   if(bonusDone){
     bs.innerHTML=`<div style="text-align:center;padding:14px;font-size:14px;color:var(--green);background:var(--green-bg);border-radius:var(--r2)">Bonus quest done! Come back tomorrow. 🎉</div>`;
     return;
@@ -1020,6 +1098,7 @@ function renderBonusSection(){
 }
 
 async function rollBonus(){
+  if(!isPro()){ showUpgradeModal('Bonus quests are a Pro feature.'); return; }
   if(bonusQuest!==null && bonusSkips<=0){ showToast('No bonus skips left for today!'); return; }
   const isSkip = bonusQuest !== null;
   const bs=document.getElementById('bonus-section');
@@ -1029,7 +1108,11 @@ async function rollBonus(){
     bonusQuest=data.quest;
     if(typeof data.bonusSkipsLeft === 'number') bonusSkips=data.bonusSkipsLeft;
     renderBonusCard(bonusQuest);
-  }catch(e){ showToast(e.message); renderBonusSection(); }
+  }catch(e){
+    if(e.upgradeRequired) showUpgradeModal(e.message);
+    else showToast(e.message);
+    renderBonusSection();
+  }
 }
 
 function renderBonusCard(q){
@@ -1209,13 +1292,22 @@ function closeModal(id){ document.getElementById(id).classList.remove('show'); i
    FREEZE
 ══════════════════════════════════════════ */
 function showFreezeModal(){
+  if(!isPro()){
+    document.getElementById('freeze-body').innerHTML=`
+      <div class="locked-banner" onclick="closeModal('modal-freeze');showUpgradeModal('Streak freeze is a Pro feature.')">
+        <span>🔒 Streak freeze is a Pro feature</span>
+        <span style="font-weight:700;">Upgrade</span>
+      </div>`;
+    document.getElementById('modal-freeze').classList.add('show');
+    return;
+  }
   const freezes=userData?.freezes||0;
   let body='';
   if(freezes>0){
     body=`<div style="background:var(--bg3);border-radius:var(--r2);padding:16px;margin-bottom:16px;">
       <div style="font-size:13px;color:var(--text2);line-height:1.6;">
         You have <strong style="color:var(--ice)">${freezes} freeze${freezes!==1?'s':''}</strong> available. 
-        If you miss tomorrow your ${userData?.streak||0}-day streak is protected. Freezes are awarded every Monday.
+        If you miss tomorrow your ${userData?.streak||0}-day streak is protected. You earn 1 freeze every Monday, up to 3 banked at once.
       </div>
     </div>
     <button class="btn-gold" style="width:100%;background:var(--ice);color:#0C2B35;" onclick="showToast('Freeze activated! Your streak is protected. 🧊');closeModal(\'modal-freeze\')">Activate freeze</button>`;
@@ -1232,11 +1324,19 @@ function showFreezeModal(){
    HISTORY
 ══════════════════════════════════════════ */
 async function renderHistory(){
+  document.getElementById('hist-banner').innerHTML='';
   document.getElementById('hist-list').innerHTML='<div class="empty-state">Loading...</div>';
   try{
     const data = await apiFetch('GET','/api/quests/history');
     const hist=data.quests||[];
     document.getElementById('hist-count').textContent=hist.length+' quest'+(hist.length!==1?'s':'');
+    if(data.historyLimited){
+      document.getElementById('hist-banner').innerHTML=`
+        <div class="locked-banner" onclick="showUpgradeModal('Full quest history is a Pro feature.')">
+          <span>🔒 Showing last 7 days only</span>
+          <span style="font-weight:700;">Upgrade</span>
+        </div>`;
+    }
     if(!hist.length){
       document.getElementById('hist-list').innerHTML=`<div class="empty-state">No completed quests yet.<br>Head back to Today and start your adventure.</div>`;
       return;
@@ -1271,14 +1371,16 @@ async function renderProfile(){
   document.getElementById('av-txt').textContent=initials;
   document.getElementById('pname-txt').textContent=name;
   const xp=userData.xp||0;
-  let lvl=0; for(let i=LEVELS.length-1;i>=0;i--){ if(xp>=LEVELS[i].m){lvl=i;break;} }
-  document.getElementById('plevel-txt').textContent=`Level ${lvl+1} — ${LEVELS[lvl].n}`;
-  const next=LEVELS[lvl+1]; const prev=LEVELS[lvl].m;
+  let rawLvl=0; for(let i=LEVELS.length-1;i>=0;i--){ if(xp>=LEVELS[i].m){rawLvl=i;break;} }
+  const capped = !isPro() && rawLvl>FREE_LEVEL_CAP_INDEX;
+  const lvl = capped ? FREE_LEVEL_CAP_INDEX : rawLvl;
+  document.getElementById('plevel-txt').innerHTML=`Level ${lvl+1} — ${LEVELS[lvl].n}`+(capped?` <span class="pro-badge" onclick="showUpgradeModal('Levels 6 and up are a Pro feature.')" style="cursor:pointer;">Pro unlocks more</span>`:'');
+  const next=capped?null:LEVELS[lvl+1]; const prev=LEVELS[lvl].m;
   const pct=next?Math.round(((xp-prev)/(next.m-prev))*100):100;
   document.getElementById('xp-bar').style.width=Math.min(pct,100)+'%';
   document.getElementById('xp-cur').textContent=xp+' XP';
-  document.getElementById('xp-max').textContent=next?next.m+' XP':'Max level';
-  document.getElementById('xp-to-next').textContent=next?(next.m-xp)+' XP to next level':'';
+  document.getElementById('xp-max').textContent=next?next.m+' XP':(capped?'Level cap':'Max level');
+  document.getElementById('xp-to-next').textContent=next?(next.m-xp)+' XP to next level':(capped?'Upgrade to keep levelling up':'');
 
   // Fetch quest history to check category and difficulty based achievements
   let hist=[];
@@ -1287,22 +1389,28 @@ async function renderProfile(){
     hist=data.quests||[];
   }catch(e){ /* use empty history if fails */ }
 
-  // Split into unlocked and locked
-  const unlocked=ACHIEVEMENTS.filter(a=>a.u(userData,hist));
-  const locked=ACHIEVEMENTS.filter(a=>!a.u(userData,hist));
+  // Free tier can only ever unlock the curated FREE_ACHIEVEMENT_IDS achievements —
+  // the rest render as Pro-locked regardless of whether the criteria is met.
+  const pro = isPro();
+  const rows = ACHIEVEMENTS.map((a)=>{
+    const allowed = pro || FREE_ACHIEVEMENT_IDS.includes(a.id);
+    const met = a.u(userData,hist);
+    return { a, unlocked: allowed && met, proLocked: !allowed };
+  });
+  const unlocked = rows.filter(r=>r.unlocked);
+  const locked   = rows.filter(r=>!r.unlocked);
 
-  // Render unlocked first then locked
   document.getElementById('ach-grid').innerHTML=[
-    ...unlocked.map(a=>`
-      <div class="ach-item unlocked" title="${a.hint}">
-        <span class="ach-icon">${a.emoji}</span>
-        <div class="ach-name">${a.name}</div>
+    ...unlocked.map(r=>`
+      <div class="ach-item unlocked" title="${r.a.hint}">
+        <span class="ach-icon">${r.a.emoji}</span>
+        <div class="ach-name">${r.a.name}</div>
       </div>`),
-    ...locked.map(a=>`
-      <div class="ach-item locked" onclick="showAchHint(this,'${a.hint.replace(/'/g,'&#39;')}')" title="${a.hint}">
+    ...locked.map(r=>`
+      <div class="ach-item locked" onclick="${r.proLocked?`showUpgradeModal('Upgrade to Pro to unlock this achievement.')`:`showAchHint(this,'${r.a.hint.replace(/'/g,'&#39;')}')`}" title="${r.proLocked?'Upgrade to Pro to unlock':r.a.hint}">
         <span class="ach-lock">🔒</span>
-        <span class="ach-icon">${a.emoji}</span>
-        <div class="ach-name">${a.name}</div>
+        <span class="ach-icon">${r.a.emoji}</span>
+        <div class="ach-name">${r.a.name}</div>
       </div>`)
   ].join('');
 }
@@ -1324,11 +1432,27 @@ function renderSettings(){
   document.getElementById('name-inp').value=userData.name||'';
   document.getElementById('signed-in-as').textContent=userData.email||'';
   _pendingDiff=userData.difficulty||'medium';
+
+  const pro=isPro();
+  document.getElementById('diff-sub').textContent = pro
+    ? 'How challenging your daily quests are'
+    : 'How challenging your daily quests are — Explorer & Legend need Pro';
+
   document.querySelectorAll('.diff-btn').forEach(btn=>{
     const match=btn.getAttribute('onclick').match(/setDiff\('(\w+)'/);
     const key=match?match[1]:'medium';
-    btn.className='diff-btn'+(key===_pendingDiff?' on-'+key:'');
+    const locked = !pro && key!=='easy';
+    btn.className='diff-btn'+(key===_pendingDiff&&!locked?' on-'+key:'')+(locked?' locked':'');
+    btn.innerHTML = (key==='easy'?'🟢 Scout':key==='medium'?'🟡 Explorer':'🔴 Legend')+(locked?' 🔒':'');
+    btn.onclick = locked
+      ? ()=>showUpgradeModal('Explorer and Legend difficulty are Pro features.')
+      : ()=>setDiff(key, btn);
   });
+
+  document.getElementById('cat-sub').textContent = pro
+    ? 'Choose which types of quests you receive'
+    : 'Choose freely — free plan draws quests from your first 2 picks';
+
   const userCats=Array.isArray(userData.categories)?userData.categories:(userData.categories||'').split(',');
   document.getElementById('cat-grid').innerHTML=Object.entries(CATS).map(([k,v])=>`
     <button class="cat-chip${userCats.includes(k)?' on':''}" onclick="toggleCat('${k}')">
@@ -1338,12 +1462,13 @@ function renderSettings(){
 
 function setDiff(d,btn){
   _pendingDiff=d;
-  document.querySelectorAll('.diff-btn').forEach(b=>b.className='diff-btn');
-  btn.className='diff-btn on-'+d;
+  document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('on-easy','on-medium','on-hard'));
+  btn.classList.add('on-'+d);
 }
 
 async function saveDiff(){
   if(!_pendingDiff) return;
+  if(!isPro() && _pendingDiff!=='easy'){ showUpgradeModal('Explorer and Legend difficulty are Pro features.'); return; }
   try{
     const data=await apiFetch('PATCH','/api/me',{difficulty:_pendingDiff});
     userData=data.user; saveLocal();
@@ -1387,7 +1512,8 @@ let _prevUnlocked=new Set();
 let _achQueue=[];
 
 function getUnlockedIds(u,h){
-  return new Set(ACHIEVEMENTS.filter(a=>a.u(u,h)).map(a=>a.id));
+  const pro=isPro();
+  return new Set(ACHIEVEMENTS.filter(a=>(pro||FREE_ACHIEVEMENT_IDS.includes(a.id))&&a.u(u,h)).map(a=>a.id));
 }
 
 async function checkNewAchievements(){
