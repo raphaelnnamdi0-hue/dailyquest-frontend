@@ -671,9 +671,15 @@ function showUpgrade(reason){
 }
 
 function handleUpgradeClick(){
-  // Payment coming soon — wire Stripe here later
-  showToast('Payment coming soon! 🚀');
+  if(userData){
+    userData.is_pro = true;
+    saveLocal();
+    closeModal('modal-upgrade');
+    showToast('Pro unlocked! 🎉');
+    showScreen('home');
+  }
 }
+
 
 function saveLocal(){
   if(token) localStorage.setItem('dq_token', token);
