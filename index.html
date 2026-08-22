@@ -671,15 +671,9 @@ function showUpgrade(reason){
 }
 
 function handleUpgradeClick(){
-  if(userData){
-    userData.is_pro = true;
-    saveLocal();
-    closeModal('modal-upgrade');
-    showToast('Pro unlocked! 🎉');
-    showScreen('home');
-  }
+  // Payment coming soon — wire Stripe here later
+  showToast('Payment coming soon! 🚀');
 }
-
 
 function saveLocal(){
   if(token) localStorage.setItem('dq_token', token);
@@ -1017,18 +1011,10 @@ async function renderHome(){
     todayQuest=data.quest;
     todayDone=!!data.completed;
 
-    // Show free tier banner for non-pro users
-    const freeBanner=!isPro()?`
-      <div onclick="showUpgrade('Upgrade for the full DailyQuest experience')" style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;">
-        <div style="font-size:12px;color:var(--text2);">🔒 Free plan · Scout only · 2 categories · 1 skip</div>
-        <div style="font-size:11px;color:var(--gold);font-weight:600;white-space:nowrap;">Upgrade →</div>
-      </div>`:'';
-
+    resetQuestArea();
     if(todayDone){
-      document.getElementById('quest-area').innerHTML=freeBanner;
       renderDoneState();
     } else {
-      document.getElementById('quest-area').innerHTML=freeBanner;
       renderQuestCard(todayQuest);
     }
   }catch(e){
@@ -1076,17 +1062,31 @@ function renderDoneState(){
   renderBonusSection();
 }
 
+function freeBannerHTML(){
+  if(isPro()) return '';
+  return `<div onclick="showUpgrade('Upgrade for the full DailyQuest experience')" style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;">
+        <div style="font-size:12px;color:var(--text2);">\u{1F512} Free plan \u00b7 Scout only \u00b7 2 categories \u00b7 1 skip</div>
+        <div style="font-size:11px;color:var(--gold);font-weight:600;white-space:nowrap;">Upgrade \u2192</div>
+      </div>`;
+}
+
+// Clears the quest area and lays down the free-plan banner (if any),
+// so renderQuestCard / renderDoneState can append onto a clean surface.
+function resetQuestArea(){
+  document.getElementById('quest-area').innerHTML = freeBannerHTML();
+}
+
 async function skipMainQuest(){
   document.getElementById('quest-area').innerHTML='<div style="padding:40px;text-align:center;"><div class="loading-dots" style="justify-content:center;"><div class="ld"></div><div class="ld"></div><div class="ld"></div></div></div>';
   try{
     const data = await apiFetch('GET','/api/quest/today?skip=1');
     todayQuest=data.quest; todayDone=false;
+    resetQuestArea();
     renderQuestCard(todayQuest);
   }catch(e){
-    // Check if it is a free tier skip limit
-    if(e.message && e.message.includes('upgrade_required') || e.message.includes('Free users')){
+    resetQuestArea();
+    if(e.message && (e.message.includes('upgrade_required') || e.message.includes('Free users'))){
       showUpgrade('You have used your 1 free skip today. Upgrade to Pro for unlimited skips.');
-      // Re-render current quest
       if(todayQuest) renderQuestCard(todayQuest);
     } else {
       showToast(e.message);
