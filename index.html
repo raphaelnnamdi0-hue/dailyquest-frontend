@@ -628,7 +628,7 @@ const ACHIEVEMENTS=[
   {id:'bloom',  name:'Flourishing',      emoji:'🌱', hint:'Complete 3 wellbeing quests',                      u:(u,h)=>h.filter(q=>q.category==='wellbeing').length>=3},
   // Variety achievements
   {id:'allcat', name:'Well rounded',     emoji:'🌍', hint:'Complete a quest in all 10 categories',            u:(u,h)=>[...new Set(h.map(q=>q.category))].length>=10},
-  {id:'allround',name:'All rounder',     emoji:'🎯', hint:'Complete quests in 5 different categories in one week', u:(u,h)=>Object.keys(u.week_cats||{}).length>=5},
+  {id:'allround',name:'All rounder',     emoji:'🎯', hint:'Complete quests in 5 different categories in one week', u:(u,h)=>{const wk=new Date(Date.now()-7*864e5).toISOString().slice(0,10); return [...new Set(h.filter(q=>(q.date||'')>=wk).map(q=>q.category))].length>=5;}},
   // Difficulty achievements
   {id:'rising', name:'Rising',           emoji:'🧗', hint:'Complete 10 Explorer difficulty quests',           u:(u,h)=>h.filter(q=>q.difficulty==='medium').length>=10},
   {id:'legendarytier',name:'Legend tier',emoji:'⚔️', hint:'Complete 5 Legend difficulty quests',             u:(u,h)=>h.filter(q=>q.difficulty==='hard').length>=5},
@@ -636,7 +636,7 @@ const ACHIEVEMENTS=[
   {id:'athlete',name:'Athlete',          emoji:'⚽', hint:'Complete 3 sports quests',                         u:(u,h)=>h.filter(q=>q.category==='sports').length>=3},
   {id:'partner',name:'Together',         emoji:'💑', hint:'Complete 3 couple quests',                         u:(u,h)=>h.filter(q=>q.category==='couple').length>=3},
   // Freeze achievement
-  {id:'freeze', name:'Ice cold',         emoji:'🧊', hint:'Use a streak freeze once',                         u:(u,h)=>(u.freezeUsedTotal||u.freeze_used_total||0)>=1},
+  {id:'freeze', name:'Ice cold',         emoji:'🧊', hint:'Use a streak freeze once',                         u:(u,h)=>(u.freezeUsedTotal||u.freeze_used_total||0)>=1||localStorage.getItem('dq_freeze_used')==='1'},
 ];
 
 /* ══════════════════════════════════════════
@@ -1202,6 +1202,7 @@ async function onVerifyDone(proof){
       todayDone=true;
       if(todayQuest) todayQuest.proof=proof;
       renderHomeStats();
+      resetQuestArea();   // clear the old quest card before showing the done state
       renderDoneState();
     }
     showToast('+'+data.xpEarned+' XP! Quest complete 🎉');
@@ -1319,6 +1320,13 @@ function closeModal(id){ document.getElementById(id).classList.remove('show'); i
 /* ══════════════════════════════════════════
    FREEZE
 ══════════════════════════════════════════ */
+function activateFreeze(){
+  localStorage.setItem('dq_freeze_used','1');
+  closeModal('modal-freeze');
+  showToast('Freeze activated! Your streak is protected. \u{1F9CA}');
+  checkNewAchievements();
+}
+
 function showFreezeModal(){
   const freezes=userData?.freezes||0;
   let body='';
@@ -1329,7 +1337,7 @@ function showFreezeModal(){
         If you miss tomorrow your ${userData?.streak||0}-day streak is protected. Freezes are awarded every Monday.
       </div>
     </div>
-    <button class="btn-gold" style="width:100%;background:var(--ice);color:#0C2B35;" onclick="showToast('Freeze activated! Your streak is protected. 🧊');closeModal(\'modal-freeze\')">Activate freeze</button>`;
+    <button class="btn-gold" style="width:100%;background:var(--ice);color:#0C2B35;" onclick="activateFreeze()">Activate freeze</button>`;
   } else {
     body=`<div style="background:var(--bg3);border-radius:var(--r2);padding:16px;text-align:center;">
       <div style="font-size:13px;color:var(--text2);line-height:1.6;">No freezes available right now.<br/>You earn 1 free freeze every Monday.</div>
