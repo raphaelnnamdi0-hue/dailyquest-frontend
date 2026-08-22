@@ -190,10 +190,13 @@ html,body{height:100%;background:#0C0B09;color:#F0EBE0;font-family:'DM Sans',san
 .cat-detox{background:var(--teal-bg);color:var(--teal);}
 .cat-fitness{background:var(--red-bg);color:var(--red);}
 .cat-wellbeing{background:var(--pink-bg);color:var(--pink);}
+.cat-sports{background:rgba(74,158,224,0.12);color:#4A9EE0;}
+.cat-couple{background:rgba(224,96,160,0.15);color:#D45090;}
 .dot-outdoor{background:var(--green);}.dot-social{background:var(--purple);}
 .dot-creative{background:var(--gold);}.dot-mindfulness{background:var(--blue);}
 .dot-food{background:var(--coral);}.dot-detox{background:var(--teal);}
 .dot-fitness{background:var(--red);}.dot-wellbeing{background:var(--pink);}
+.dot-sports{background:#4A9EE0;}.dot-couple{background:#D45090;}
 .ob-diff-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:16px;cursor:pointer;transition:all .2s;}
 .ob-diff-card:hover{border-color:rgba(232,184,75,.3);}
 .ob-diff-card.selected{border-color:var(--gold);background:var(--gold-dim);}
@@ -379,6 +382,7 @@ html,body{height:100%;background:#0C0B09;color:#F0EBE0;font-family:'DM Sans',san
     </div>
     <div class="section" style="padding-bottom:24px">
       <div class="section-title">Achievements</div>
+      <div id="ach-upgrade-text"></div>
       <div class="ach-grid" id="ach-grid"></div>
     </div>
   </div>
@@ -516,7 +520,7 @@ html,body{height:100%;background:#0C0B09;color:#F0EBE0;font-family:'DM Sans',san
       <button class="modal-close" onclick="closeModal('modal-upgrade')">✕</button>
     </div>
     <div style="text-align:center;padding:8px 0 20px;">
-      <div style="font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--gold);letter-spacing:-.03em;">$2.99<span style="font-size:16px;color:var(--text2);font-weight:400;">/month</span></div>
+      <div style="font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--gold);letter-spacing:-.03em;">$4.99<span style="font-size:16px;color:var(--text2);font-weight:400;">/month</span></div>
       <div style="font-size:13px;color:var(--text2);margin-top:4px;">Unlock everything. Cancel anytime.</div>
     </div>
     <div style="background:var(--bg3);border-radius:var(--r2);padding:16px;margin-bottom:20px;">
@@ -533,7 +537,7 @@ html,body{height:100%;background:#0C0B09;color:#F0EBE0;font-family:'DM Sans',san
         <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);">✅ <span>All 20 levels up to Legendary</span></div>
       </div>
     </div>
-    <button class="btn-gold" style="width:100%;font-size:16px;padding:16px;" onclick="handleUpgradeClick()">Unlock Pro — $2.99/month</button>
+    <button class="btn-gold" style="width:100%;font-size:16px;padding:16px;" onclick="handleUpgradeClick()">Unlock Pro — $4.99/month</button>
     <div style="text-align:center;margin-top:14px;"><a onclick="closeModal('modal-upgrade')" style="font-size:13px;color:var(--text3);cursor:pointer;">Maybe later</a></div>
   </div>
 </div>
@@ -572,6 +576,8 @@ const CATS={
   detox:      {l:'Digital Detox',emoji:'📵',color:'var(--teal)', desc:'Step away from screens and reclaim your attention.'},
   fitness:    {l:'Fitness',    emoji:'🏃',color:'var(--red)',    desc:'Move your body with walks, workouts, and challenges.'},
   wellbeing:  {l:'Wellbeing',  emoji:'🌱',color:'var(--pink)',   desc:'Journal, reflect, and take care of your mind.'},
+  sports:     {l:'Sports',     emoji:'⚽',color:'#4A9EE0',       desc:'Play, compete, and discover sports new and old.'},
+  couple:     {l:'Couple',     emoji:'💑',color:'#D45090',       desc:'Do something meaningful together with your partner.'},
 };
 
 const LEVELS=[
@@ -621,11 +627,14 @@ const ACHIEVEMENTS=[
   {id:'iron',   name:'Iron will',        emoji:'💪', hint:'Complete 3 fitness quests',                        u:(u,h)=>h.filter(q=>q.category==='fitness').length>=3},
   {id:'bloom',  name:'Flourishing',      emoji:'🌱', hint:'Complete 3 wellbeing quests',                      u:(u,h)=>h.filter(q=>q.category==='wellbeing').length>=3},
   // Variety achievements
-  {id:'allcat', name:'Well rounded',     emoji:'🌍', hint:'Complete a quest in all 8 categories',             u:(u,h)=>[...new Set(h.map(q=>q.category))].length>=8},
+  {id:'allcat', name:'Well rounded',     emoji:'🌍', hint:'Complete a quest in all 10 categories',            u:(u,h)=>[...new Set(h.map(q=>q.category))].length>=10},
   {id:'allround',name:'All rounder',     emoji:'🎯', hint:'Complete quests in 5 different categories in one week', u:(u,h)=>Object.keys(u.week_cats||{}).length>=5},
   // Difficulty achievements
   {id:'rising', name:'Rising',           emoji:'🧗', hint:'Complete 10 Explorer difficulty quests',           u:(u,h)=>h.filter(q=>q.difficulty==='medium').length>=10},
   {id:'legendarytier',name:'Legend tier',emoji:'⚔️', hint:'Complete 5 Legend difficulty quests',             u:(u,h)=>h.filter(q=>q.difficulty==='hard').length>=5},
+  // New category achievements
+  {id:'athlete',name:'Athlete',          emoji:'⚽', hint:'Complete 3 sports quests',                         u:(u,h)=>h.filter(q=>q.category==='sports').length>=3},
+  {id:'partner',name:'Together',         emoji:'💑', hint:'Complete 3 couple quests',                         u:(u,h)=>h.filter(q=>q.category==='couple').length>=3},
   // Freeze achievement
   {id:'freeze', name:'Ice cold',         emoji:'🧊', hint:'Use a streak freeze once',                         u:(u,h)=>(u.freezeUsedTotal||u.freeze_used_total||0)>=1},
 ];
@@ -646,7 +655,15 @@ let _obDiff      = 'medium';
 let pendingBonusQ = null;
 
 // ── PAYWALL HELPERS ──────────────────────────────────────────────────────────
-function isPro(){ return !!(userData && userData.is_pro); }
+// ══════════════════════════════════════════
+// PAYWALL FLAG — set to true to turn the paywall back on
+// ══════════════════════════════════════════
+const PAYWALL_ENABLED = false;
+
+function isPro(){
+  if(!PAYWALL_ENABLED) return true;  // paywall off — everyone gets full access
+  return !!(userData && userData.is_pro);
+}
 
 function showUpgrade(reason){
   document.getElementById('upgrade-reason').textContent = reason || '';
@@ -983,14 +1000,31 @@ async function renderHome(){
   renderHomeStats();
   const d=new Date();
   document.getElementById('date-row').textContent=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-  document.getElementById('bonus-section').style.display='none';
+
+  // Always show bonus section — locked for free users
+  document.getElementById('bonus-section').style.display='block';
+  renderBonusSection();
+
   document.getElementById('quest-area').innerHTML='<div style="padding:40px;text-align:center;"><div class="loading-dots" style="justify-content:center;"><div class="ld"></div><div class="ld"></div><div class="ld"></div></div></div>';
   try{
     const data = await apiFetch('GET','/api/quest/today');
     todayQuest=data.quest;
     todayDone=!!data.completed;
-    if(todayDone){ renderDoneState(); }
-    else { renderQuestCard(todayQuest); }
+
+    // Show free tier banner for non-pro users
+    const freeBanner=!isPro()?`
+      <div onclick="showUpgrade('Upgrade for the full DailyQuest experience')" style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;">
+        <div style="font-size:12px;color:var(--text2);">🔒 Free plan · Scout only · 2 categories · 1 skip</div>
+        <div style="font-size:11px;color:var(--gold);font-weight:600;white-space:nowrap;">Upgrade →</div>
+      </div>`:'';
+
+    if(todayDone){
+      document.getElementById('quest-area').innerHTML=freeBanner;
+      renderDoneState();
+    } else {
+      document.getElementById('quest-area').innerHTML=freeBanner;
+      renderQuestCard(todayQuest);
+    }
   }catch(e){
     document.getElementById('quest-area').innerHTML=`<div style="padding:28px;text-align:center;color:var(--text2);font-size:14px">Could not load quest.<br><small style="color:var(--text3)">${e.message}</small></div>`;
   }
@@ -999,7 +1033,8 @@ async function renderHome(){
 function renderQuestCard(q){
   const cat=CATS[q.category||q.cat]||CATS.outdoor;
   const catKey=q.category||q.cat||'outdoor';
-  document.getElementById('quest-area').innerHTML=`
+  const skipLabel=isPro()?'Skip':'Skip (1 left)';
+  document.getElementById('quest-area').innerHTML+=`
     <div class="quest-card"><div class="quest-card-inner">
       <div class="quest-top">
         <div style="display:flex;align-items:center;gap:6px;">
@@ -1013,14 +1048,14 @@ function renderQuestCard(q){
       <div class="verify-tag">${verifyIcon(q.verify||'reflection')} ${verifyText(q.verify||'reflection')}</div>
       <div class="quest-actions">
         <button class="btn-gold" onclick="startVerify(false)">Mark complete</button>
-        <button class="btn-ghost" onclick="skipMainQuest()">Skip</button>
+        <button class="btn-ghost" onclick="skipMainQuest()">${skipLabel}</button>
       </div>
     </div></div>`;
 }
 
 function renderDoneState(){
   const q=todayQuest;
-  document.getElementById('quest-area').innerHTML=`
+  document.getElementById('quest-area').innerHTML+=`
     <div class="done-card">
       <div class="done-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4CAF7D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
       <div class="done-title">Quest complete!</div>
@@ -1044,7 +1079,7 @@ async function skipMainQuest(){
   }catch(e){
     // Check if it is a free tier skip limit
     if(e.message && e.message.includes('upgrade_required') || e.message.includes('Free users')){
-      showUpgrade('You have used your 3 free skips today. Upgrade for unlimited skips.');
+      showUpgrade('You have used your 1 free skip today. Upgrade to Pro for unlimited skips.');
       // Re-render current quest
       if(todayQuest) renderQuestCard(todayQuest);
     } else {
@@ -1309,9 +1344,9 @@ async function renderHistory(){
     document.getElementById('hist-count').textContent=hist.length+' quest'+(hist.length!==1?'s':'');
     let limitBanner='';
     if(!isPro()){
-      limitBanner=`<div style="background:var(--gold-dim);border:1px solid rgba(232,184,75,.2);border-radius:var(--r2);padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-        <div style="font-size:13px;color:var(--text2);">Showing last 7 days only</div>
-        <button onclick="showUpgrade('Unlock full history with Pro')" style="background:var(--gold);color:#1A1508;border:none;border-radius:var(--r);padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">Upgrade</button>
+      limitBanner=`<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:12px 14px;margin-bottom:16px;">
+        <div style="font-size:13px;color:var(--text2);margin-bottom:8px;">⚠️ Your quest history is limited to the last 7 days on the free plan. Older quests are permanently lost each week.</div>
+        <button onclick="showUpgrade('Upgrade to Pro to keep your full quest history forever')" style="background:var(--gold);color:#1A1508;border:none;border-radius:var(--r);padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">Upgrade to keep history forever</button>
       </div>`;
     }
     if(!hist.length){
@@ -1407,7 +1442,11 @@ async function renderProfile(){
     })
   ].join('');
 
-  // Show level cap upgrade prompt for free users at max level
+  // Show achievement upgrade text for free users
+  const achUpgradeEl=document.getElementById('ach-upgrade-text');
+  if(achUpgradeEl){
+    achUpgradeEl.innerHTML=!pro?`<div onclick="showUpgrade('Upgrade to Pro to unlock all 23 achievements')" style="font-size:12px;color:var(--gold);cursor:pointer;margin-bottom:10px;padding:8px 12px;background:var(--gold-dim);border-radius:var(--r);border:1px solid rgba(232,184,75,.2);">🔒 Upgrade to Pro to unlock all 23 achievements →</div>`:'';
+  }
   if(!pro && lvl>=4){
     const grid=document.getElementById('ach-grid');
     grid.insertAdjacentHTML('beforebegin',`
